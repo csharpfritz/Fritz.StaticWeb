@@ -12,7 +12,10 @@ namespace Test.StaticBlog.GivenValidActionBuild
 			_sut = new ActionBuild {
 				Force = false,
 				OutputPath = "dist",
-				WorkingDirectory = "../../../../TestSite"
+				WorkingDirectory = "../../../../TestSite",
+				Config = new Config {
+					Theme = "kliptok"
+				}
 			};
 
 		}

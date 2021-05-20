@@ -1,7 +1,6 @@
 ---
-draft: false
-title: First Post
+draft: true
+title: First post!
 ---
 
 This is my first post
-

@@ -1,7 +1,11 @@
 using System;
 using System.IO;
+using System.Linq;
+using System.Text;
 using System.Text.Json;
 using CommandLine;
+using Markdig;
+using Markdig.Extensions.Yaml;
 using Markdig.Syntax;
 
 namespace Fritz.StaticBlog
@@ -20,7 +24,7 @@ namespace Fritz.StaticBlog
 		[Option('d', "directory", Required=false, HelpText="The directory to run the build against.  Default current directory")]
 		public string WorkingDirectory { get; set; } = ".";
 
-		internal Config Config { get; private set; }
+		internal Config Config { get; set; }
 
 		public int Execute()
 		{
@@ -110,14 +114,32 @@ namespace Fritz.StaticBlog
 		{
 			
 			var postsFolder = new DirectoryInfo(Path.Combine(WorkingDirectory, "posts"));
+			var outputFolder = new DirectoryInfo(Path.Combine(WorkingDirectory, OutputPath, "posts"));
+			if (!outputFolder.Exists) outputFolder.Create();
+
+			var pipeline = new MarkdownPipelineBuilder()
+				.UseAdvancedExtensions()
+				.UseYamlFrontMatter()
+				.Build();
+
+			// Load layout for post
+			var layoutText = File.ReadAllText(Path.Combine(WorkingDirectory, "themes", Config.Theme, "layouts", "posts.html"));
 
 			foreach (var post in postsFolder.GetFiles("*.md"))
 			{
 				
-				var txt = File.OpenText(post.FullName);
-				var doc = Markdig.Markdown.Parse(txt.ReadToEnd());
+				var txt = File.ReadAllText(post.FullName, Encoding.UTF8);
 
-				// File.OpenWrite(Path.Combine()) Markdig.Markdown.ToHtml(doc);
+				string fileName = Path.Combine(WorkingDirectory,"dist",  "posts", post.Name[0..^3] + ".html");
+
+				var doc = Markdig.Markdown.Parse(txt, pipeline);
+				var fm = txt.GetFrontMatter<Frontmatter>();
+				var mdHTML = Markdig.Markdown.ToHtml(doc, pipeline);
+
+
+				string outputHTML = layoutText.Replace("{{ Body }}", mdHTML);
+				outputHTML = outputHTML.Replace("{{ Title }}", fm.Title);
+				File.WriteAllText(fileName, outputHTML);
 
 			}
 
