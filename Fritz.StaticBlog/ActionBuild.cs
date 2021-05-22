@@ -138,7 +138,7 @@ namespace Fritz.StaticBlog
 
 
 				string outputHTML = layoutText.Replace("{{ Body }}", mdHTML);
-				outputHTML = outputHTML.Replace("{{ Title }}", fm.Title);
+				outputHTML = fm.Format(outputHTML);
 				File.WriteAllText(fileName, outputHTML);
 
 			}
