@@ -10,6 +10,10 @@ namespace Test.StaticBlog.GivenValidActionBuild
 
 		public WhenBuildingIndex()
 		{
+
+			// Reset by deleting the index file
+			File.Delete(Path.Combine(OutputFolder.FullName, "index.html"));
+
 			_sut.BuildIndex();
 
 			System.Console.WriteLine($"Index file location: {Path.Combine(OutputFolder.FullName, "index.html")}");
