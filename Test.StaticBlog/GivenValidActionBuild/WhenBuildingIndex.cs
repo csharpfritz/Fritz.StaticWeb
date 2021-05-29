@@ -11,15 +11,18 @@ namespace Test.StaticBlog.GivenValidActionBuild
 		public WhenBuildingIndex()
 		{
 			_sut.BuildIndex();
+
+			System.Console.WriteLine($"Index file location: {Path.Combine(OutputFolder.FullName, "index.html")}");
+			_IndexFile = OutputFolder.GetFiles("index.html").FirstOrDefault();
+
 		}
+
+		private FileInfo _IndexFile;
 
 		[Fact]
 		public void ShouldCreateIndexHtml() {
 
-			System.Console.WriteLine($"Index file location: {Path.Combine(OutputFolder.FullName, "index.html")}");
-
-			var indexFile = OutputFolder.GetFiles("index.html").FirstOrDefault();
-			Assert.NotNull(indexFile);
+			Assert.NotNull(_IndexFile);
 
 		}
 
@@ -27,7 +30,12 @@ namespace Test.StaticBlog.GivenValidActionBuild
 		public void ShouldCreateAnEntryForTheFirstPost() 
 		{
 
-			
+			// Index wasnt created, don't process
+			if (_IndexFile == null) return;
+
+			var contents = File.OpenText(_IndexFile.FullName).ReadToEnd();
+
+			Assert.Contains("First post!", contents);
 
 		}
 
