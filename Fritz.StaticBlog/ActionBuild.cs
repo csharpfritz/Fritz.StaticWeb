@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -14,6 +15,8 @@ namespace Fritz.StaticBlog
 	[Verb("build", HelpText="Build the website")]
 	public class ActionBuild : ICommandLineAction
 	{
+
+		private List<PostData> _Posts = new();
 
 		[Option('f', "force", Default = (bool)false)]
 		public bool Force { get; set; }
@@ -51,7 +54,6 @@ namespace Fritz.StaticBlog
 			var outputDir = new DirectoryInfo(Path.Combine(WorkingDirectory, OutputPath));
 			outValue = outputDir.Exists;
 			if (!outValue) System.Console.WriteLine($"Output folder '{outputDir.FullName}' does not exist");
-
 			if (outValue) {
 				outValue = new DirectoryInfo(Path.Combine(WorkingDirectory, "themes")).Exists;
 				if (!outValue) System.Console.WriteLine("themes folder is missing");
@@ -72,7 +74,7 @@ namespace Fritz.StaticBlog
 				if (!outValue) System.Console.WriteLine($"config.json file is missing");
 			}
 
-			if (outValue)	outValue = ValidateConfig();
+			if (outValue)	outValue = ValidateConfig(); 
 
 			return outValue;
 
@@ -96,13 +98,13 @@ namespace Fritz.StaticBlog
 				return false;
 			}
 
-			return true;
+			return true; 
 
 		}
 
 		internal void BuildIndex()
 		{
-			throw new NotImplementedException();
+			// throw new NotImplementedException();
 		}
 
 		internal void BuildPages()
@@ -140,6 +142,7 @@ namespace Fritz.StaticBlog
 				string outputHTML = layoutText.Replace("{{ Body }}", mdHTML);
 				outputHTML = fm.Format(outputHTML);
 				File.WriteAllText(fileName, outputHTML);
+
 
 			}
 

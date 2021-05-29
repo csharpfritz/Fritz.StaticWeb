@@ -1,3 +1,4 @@
+using System.IO;
 using Fritz.StaticBlog;
 
 namespace Test.StaticBlog.GivenValidActionBuild
@@ -18,7 +19,11 @@ namespace Test.StaticBlog.GivenValidActionBuild
 				}
 			};
 
+			OutputFolder = new DirectoryInfo(Path.Combine(_sut.WorkingDirectory, "dist", "posts"));
+
 		}
+
+		public DirectoryInfo OutputFolder { get; private set; }
 
 
 	}

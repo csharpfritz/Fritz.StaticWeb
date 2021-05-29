@@ -7,15 +7,6 @@ namespace Test.StaticBlog.GivenValidActionBuild
 		
 	public class WhenBuildingPosts : BaseFixture {
 
-		public WhenBuildingPosts() : base()
-		{
-
-			OutputFolder = new DirectoryInfo(Path.Combine(_sut.WorkingDirectory, "dist", "posts"));
-
-		}
-
-		public DirectoryInfo OutputFolder { get; private set; }
-
 		[Fact]
 		public void ShouldNotThrowError() {
 
