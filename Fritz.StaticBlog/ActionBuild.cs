@@ -104,7 +104,12 @@ namespace Fritz.StaticBlog
 
 		internal void BuildIndex()
 		{
-			// throw new NotImplementedException();
+
+			using var indexFile = File.CreateText(Path.Combine(WorkingDirectory, OutputPath, "index.html"));
+
+			indexFile.WriteLine("Test");
+			indexFile.Close();
+
 		}
 
 		internal void BuildPages()

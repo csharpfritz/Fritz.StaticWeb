@@ -5,16 +5,18 @@ using Xunit;
 namespace Test.StaticBlog.GivenValidActionBuild
 {
 		
-	public class WhenCreatingIndex : BaseFixture
+	public class WhenBuildingIndex : BaseFixture
 	{
 
-		public WhenCreatingIndex()
+		public WhenBuildingIndex()
 		{
 			_sut.BuildIndex();
 		}
 
 		[Fact]
 		public void ShouldCreateIndexHtml() {
+
+			System.Console.WriteLine($"Index file location: {Path.Combine(OutputFolder.FullName, "index.html")}");
 
 			var indexFile = OutputFolder.GetFiles("index.html").FirstOrDefault();
 			Assert.NotNull(indexFile);

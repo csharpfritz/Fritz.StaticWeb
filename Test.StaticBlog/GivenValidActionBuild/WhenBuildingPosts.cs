@@ -19,8 +19,8 @@ namespace Test.StaticBlog.GivenValidActionBuild
 
 			// arrange
 			// Clear the folder to ensure this file is written
-			if (OutputFolder.Exists) {
-				var files = OutputFolder.GetFiles();
+			if (OutputPostsFolder.Exists) {
+				var files = OutputPostsFolder.GetFiles();
 				foreach (var f in files)
 				{
 						f.Delete();
@@ -31,9 +31,9 @@ namespace Test.StaticBlog.GivenValidActionBuild
 			_sut.BuildPosts();
 
 			// assert
-			Assert.NotEmpty(OutputFolder.GetFiles());
+			Assert.NotEmpty(OutputPostsFolder.GetFiles());
 
-			var inspectFile = OutputFolder.GetFiles("*.html").First();
+			var inspectFile = OutputPostsFolder.GetFiles("*.html").First();
 			var html = File.ReadAllText(inspectFile.FullName);
 			Assert.DoesNotContain("draft: true", html);
 
@@ -46,7 +46,7 @@ namespace Test.StaticBlog.GivenValidActionBuild
 			_sut.BuildPosts();
 
 			// assert
-			var inspectFile = OutputFolder.GetFiles("*.html").First();
+			var inspectFile = OutputPostsFolder.GetFiles("*.html").First();
 			var html = File.ReadAllText(inspectFile.FullName);
 			Assert.DoesNotContain("draft: true", html);
 
@@ -59,7 +59,7 @@ namespace Test.StaticBlog.GivenValidActionBuild
 			_sut.BuildPosts();
 
 			// assert
-			var inspectFile = OutputFolder.GetFiles("*.html").First();
+			var inspectFile = OutputPostsFolder.GetFiles("*.html").First();
 			var html = File.ReadAllText(inspectFile.FullName);
 			Assert.Contains("<html>", html);
 			Assert.Contains("<body>", html);
@@ -74,7 +74,7 @@ namespace Test.StaticBlog.GivenValidActionBuild
 			_sut.BuildPosts();
 
 			// assert
-			var inspectFile = OutputFolder.GetFiles("*.html").OrderBy(f => f.Name).First();
+			var inspectFile = OutputPostsFolder.GetFiles("*.html").OrderBy(f => f.Name).First();
 			var html = File.ReadAllText(inspectFile.FullName);
 			Assert.Contains("<title>First post!</title>", html);
 

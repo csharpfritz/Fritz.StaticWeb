@@ -19,11 +19,13 @@ namespace Test.StaticBlog.GivenValidActionBuild
 				}
 			};
 
-			OutputFolder = new DirectoryInfo(Path.Combine(_sut.WorkingDirectory, "dist", "posts"));
+			OutputFolder = new DirectoryInfo(Path.Combine(_sut.WorkingDirectory, "dist"));
+			OutputPostsFolder = new DirectoryInfo(Path.Combine(_sut.WorkingDirectory, "dist", "posts"));
 
 		}
 
 		public DirectoryInfo OutputFolder { get; private set; }
+		public DirectoryInfo OutputPostsFolder { get; private set; }
 
 
 	}
