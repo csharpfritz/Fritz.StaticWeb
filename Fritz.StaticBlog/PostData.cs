@@ -4,7 +4,7 @@ namespace Fritz.StaticBlog
 	public class PostData 
 	{
 
-		public string Title { get; set; }
+		public Frontmatter Frontmatter { get; set; }
 
 		public string Filename { get; set; }
 

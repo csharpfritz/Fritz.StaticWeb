@@ -16,7 +16,7 @@ namespace Fritz.StaticBlog
 	public class ActionBuild : ICommandLineAction
 	{
 
-		private List<PostData> _Posts = new();
+		internal List<PostData> _Posts = new();
 
 		[Option('f', "force", Default = (bool)false)]
 		public bool Force { get; set; }
@@ -26,6 +26,11 @@ namespace Fritz.StaticBlog
 
 		[Option('d', "directory", Required=false, HelpText="The directory to run the build against.  Default current directory")]
 		public string WorkingDirectory { get; set; } = ".";
+
+		// TODO: Implement minification
+		[Option('m', "minify", Default = (bool)false, HelpText = "Minify the output HTML")]
+		public bool MinifyOutput { get; set; } = false;
+
 
 		internal Config Config { get; set; }
 
@@ -106,15 +111,35 @@ namespace Fritz.StaticBlog
 		{
 
 			using var indexFile = File.CreateText(Path.Combine(WorkingDirectory, OutputPath, "index.html"));
+			using var indexLayout = File.OpenText(Path.Combine(WorkingDirectory, "themes", Config.Theme, "layouts", "index.html"));
 
-			indexFile.WriteLine("Test");
+			var outContent = indexLayout.ReadToEnd();
+
+			// Set the title from config
+			outContent = outContent.Replace("{{ Title }}", Config.Title);
+
+			// Load the first 10 articles on the index page
+			var orderedPosts = _Posts.Where(p => !p.Frontmatter.Draft).OrderByDescending(p => p.Frontmatter.PublishDate);
+			var sb = new StringBuilder();
+			for (var i=0; i<Math.Min(10, _Posts.Count); i++) {
+
+				var thisPost = orderedPosts.Skip(i).First();
+				sb.AppendLine($"<h2>{thisPost.Frontmatter.Title}</h2>");
+
+				sb.AppendLine(thisPost.Abstract);
+
+			}
+
+			outContent = outContent.Replace("{{ Body }}", sb.ToString());
+
+			indexFile.Write(outContent);
 			indexFile.Close();
 
 		}
 
 		internal void BuildPages()
 		{
-			throw new NotImplementedException();
+			// throw new NotImplementedException();
 		}
 
 		internal void BuildPosts()

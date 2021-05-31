@@ -15,7 +15,8 @@ namespace Test.StaticBlog.GivenValidActionBuild
 				OutputPath = "dist",
 				WorkingDirectory = "../../../../TestSite",
 				Config = new Config {
-					Theme = "kliptok"
+					Theme = "kliptok",
+					Title = "The Unit Test Website"
 				}
 			};
 

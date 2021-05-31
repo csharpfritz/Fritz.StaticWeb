@@ -7,6 +7,9 @@ namespace Fritz.StaticBlog
 		[JsonPropertyName("theme")]
 		public string Theme { get; set; }
 
+		[JsonPropertyName("title")]
+		public string Title { get; set; }
+
 	}
 
 }
