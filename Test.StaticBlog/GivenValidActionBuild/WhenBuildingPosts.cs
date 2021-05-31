@@ -81,6 +81,17 @@ namespace Test.StaticBlog.GivenValidActionBuild
 
 		}
 
+		[Fact]
+		public void ShouldAddToPostsForIndex() {
+
+			// act
+			_sut.BuildPosts();
+
+			// assert
+			Assert.NotEmpty(_sut._Posts);
+
+		}
+
 	}
 
 }

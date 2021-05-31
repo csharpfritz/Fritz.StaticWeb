@@ -124,7 +124,7 @@ namespace Fritz.StaticBlog
 			for (var i=0; i<Math.Min(10, _Posts.Count); i++) {
 
 				var thisPost = orderedPosts.Skip(i).First();
-				sb.AppendLine($"<h2>{thisPost.Frontmatter.Title}</h2>");
+				sb.AppendLine($"<h2><a href=\"{thisPost.Filename}\">{thisPost.Frontmatter.Title}</a></h2>");
 
 				sb.AppendLine(thisPost.Abstract);
 
@@ -162,7 +162,8 @@ namespace Fritz.StaticBlog
 				
 				var txt = File.ReadAllText(post.FullName, Encoding.UTF8);
 
-				string fileName = Path.Combine(WorkingDirectory,"dist",  "posts", post.Name[0..^3] + ".html");
+				var baseName = Path.Combine("posts", post.Name[0..^3] + ".html");
+				var fileName = Path.Combine(WorkingDirectory,"dist", baseName);
 
 				var doc = Markdig.Markdown.Parse(txt, pipeline);
 				var fm = txt.GetFrontMatter<Frontmatter>();
@@ -173,6 +174,11 @@ namespace Fritz.StaticBlog
 				outputHTML = fm.Format(outputHTML);
 				File.WriteAllText(fileName, outputHTML);
 
+				_Posts.Add(new PostData {
+					Abstract = mdHTML,
+					Filename = baseName,
+					Frontmatter = fm
+				});
 
 			}
 

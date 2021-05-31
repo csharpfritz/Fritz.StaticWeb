@@ -75,6 +75,9 @@ namespace Test.StaticBlog.GivenValidActionBuild
 
 			// Check for the post title
 			Assert.Contains("First post!", contents);
+			
+			// Should contains a link to the first post
+			Assert.Contains($"<a href=\"{_sut._Posts.First().Filename}\">", contents);
 
 			// Check for the content
 			Assert.Contains("This is my first post", contents);
