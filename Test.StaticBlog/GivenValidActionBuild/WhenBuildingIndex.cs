@@ -1,16 +1,19 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Test.StaticBlog.GivenValidActionBuild
 {
 		
+	[Collection("Index construction")]
 	public class WhenBuildingIndex : BaseFixture
 	{
 
-		public WhenBuildingIndex()
-		{
+		public WhenBuildingIndex(ITestOutputHelper output)
+		{ 
 
 			// Reset by deleting the index file
 			File.Delete(Path.Combine(OutputFolder.FullName, "index.html"));
@@ -27,63 +30,22 @@ namespace Test.StaticBlog.GivenValidActionBuild
 
 			_sut.BuildIndex();
 
-			System.Console.WriteLine($"Index file location: {Path.Combine(OutputFolder.FullName, "index.html")}");
+			Output = output;
+			Output.WriteLine(OutputFolder.FullName);
+			Output.WriteLine($"Index file location: {Path.Combine(OutputFolder?.FullName, "index.html")}");
 			_IndexFile = OutputFolder.GetFiles("index.html").FirstOrDefault();
-
 		}
 
 		private FileInfo _IndexFile;
 
+		public ITestOutputHelper Output { get; }
+
 		[Fact]
-		public void ShouldCreateIndexHtml() {
+		public void ShouldCreateIndexHtml() { 
 
 			Assert.NotNull(_IndexFile);
 
 		}
-
-		[Fact]
-		public void ShouldSetTitleFromConfigFile() {
-
-			if (_IndexFile == null) return;
-
-			var contents = File.OpenText(_IndexFile.FullName).ReadToEnd();			
-
-			Assert.Contains("<title>The Unit Test Website</title>", contents);
-
-		}
-
-		[Fact]
-		public void ShouldUseTheLayout() 
-		{
-
-			if (_IndexFile == null) return;
-
-			var contents = File.OpenText(_IndexFile.FullName).ReadToEnd();
-
-			Assert.Contains("<!-- Test Layout -->", contents);
-
-		}
-
-		[Fact]
-		public void ShouldCreateAnEntryForTheFirstPost() 
-		{
-
-			// Index wasnt created, don't process
-			if (_IndexFile == null) return;
-
-			var contents = File.OpenText(_IndexFile.FullName).ReadToEnd();
-
-			// Check for the post title
-			Assert.Contains("First post!", contents);
-			
-			// Should contains a link to the first post
-			Assert.Contains($"<a href=\"{_sut._Posts.First().Filename}\">", contents);
-
-			// Check for the content
-			Assert.Contains("This is my first post", contents);
-
-		}
-
 
 	}
 
