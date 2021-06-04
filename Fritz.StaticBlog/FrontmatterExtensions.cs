@@ -1,4 +1,6 @@
+using System;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Markdig;
 using Markdig.Extensions.Yaml;
 using Markdig.Syntax;
@@ -48,6 +50,20 @@ private static readonly IDeserializer YamlDeserializer =
 
         return YamlDeserializer.Deserialize<T>(yaml);
     }
+
+    public static string Serialize(this Frontmatter frontmatter)
+		{
+
+      var serializer = new SerializerBuilder()
+        .IncludeNonPublicProperties()
+        .Build();
+
+      return string.Concat(
+        "---", Environment.NewLine, 
+        serializer.Serialize(frontmatter), 
+        "---", Environment.NewLine, Environment.NewLine);
+
+		}
 
 	}
 
