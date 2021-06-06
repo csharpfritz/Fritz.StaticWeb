@@ -1,0 +1,2 @@
+#!/bin/bash
+dotnet publish -o publish/ -c Release -r win-x64 -p:PublishSingleFile=true --self-contained true
