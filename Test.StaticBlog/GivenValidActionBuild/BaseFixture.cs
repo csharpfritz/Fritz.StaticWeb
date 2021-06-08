@@ -40,7 +40,7 @@ namespace Test.StaticBlog.GivenValidActionBuild
 				OutputFolder.Create();
 				folderLock.ExitWriteLock();
 			}
-			OutputPostsFolder = new DirectoryInfo(Path.Combine(_sut.WorkingDirectory, "dist", "posts"));
+			OutputPostsFolder = new DirectoryInfo(Path.Combine(OutputFolder.FullName, "posts"));
 
 		}
 

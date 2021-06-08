@@ -133,8 +133,8 @@ namespace Fritz.StaticBlog
 				
 				var txt = File.ReadAllText(post.FullName, Encoding.UTF8);
 
-				var baseName = Path.Combine("posts", post.Name[0..^3] + ".html");
-				var fileName = Path.Combine(WorkingDirectory,"dist", baseName);
+				var baseName = Path.Combine(post.Name[0..^3] + ".html");
+				var fileName = Path.Combine(outputFolder.FullName, baseName);
 
 				var doc = Markdig.Markdown.Parse(txt, pipeline);
 				var fm = txt.GetFrontMatter<Frontmatter>();
