@@ -29,6 +29,20 @@ namespace Test.StaticBlog.GivenWwwrootContents
 
         }
 
+				[Fact]
+				public void ShouldDeployThemeWwwrootContentToOutputFolderRoot() {
+
+					try {
+						File.Delete(Path.Join(OutputFolder.FullName, "theme.css"));
+					}
+					catch {}
+
+					_sut.DeployWwwRoot();
+
+					Assert.True(File.Exists(Path.Join(OutputFolder.FullName, "theme.css")));
+
+				}
+
     }
 
 }

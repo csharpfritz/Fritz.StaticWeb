@@ -167,17 +167,35 @@ namespace Fritz.StaticBlog
 				internal void DeployWwwRoot()
 				{
 					
-					if (!Directory.Exists(Path.Combine(WorkingDirectory, "wwwroot"))) return;
+					var themeFolder = new DirectoryInfo(Path.Combine(WorkingDirectory, "themes", Config.Theme, "wwwroot"));
+					if (!Directory.Exists(Path.Combine(WorkingDirectory, "wwwroot")) && !themeFolder.Exists) return;
 
 					var wwwFolder = new DirectoryInfo(Path.Combine(WorkingDirectory, "wwwroot"));
 					var targetFolder = new DirectoryInfo(Path.Combine(WorkingDirectory, OutputPath));
-					foreach (var item in wwwFolder.GetDirectories()) {
-						CopyFolder(targetFolder, item);
+
+					if (themeFolder.Exists) {
+
+						foreach (var item in themeFolder.GetDirectories()) {
+							CopyFolder(targetFolder, item);
+						}
+
+						foreach (var item in themeFolder.GetFiles())
+						{
+							File.Copy(item.FullName, Path.Combine(targetFolder.FullName, item.Name), true);
+						}
 					}
 
-					foreach (var item in wwwFolder.GetFiles())
-					{
-						File.Copy(item.FullName, Path.Combine(targetFolder.FullName, item.Name));
+					if (wwwFolder.Exists) {
+
+						foreach (var item in wwwFolder.GetDirectories()) {
+							CopyFolder(targetFolder, item);
+						}
+
+						foreach (var item in wwwFolder.GetFiles())
+						{
+							File.Copy(item.FullName, Path.Combine(targetFolder.FullName, item.Name), true);
+						}
+
 					}
 
 				}
@@ -202,7 +220,7 @@ namespace Fritz.StaticBlog
 
 				foreach (var item in source.GetFiles())
 				{
-					File.Copy(item.FullName, Path.Combine(targetFolder.FullName, item.Name));
+					File.Copy(item.FullName, Path.Combine(targetFolder.FullName, item.Name), true);
 				}
 
 			}
