@@ -109,6 +109,7 @@ namespace Fritz.StaticBlog
 						}
 
 						outContent = outContent.Replace("{{ Body }}", sb.ToString());
+						outContent = Minify(outContent);
 
 						indexFile.Write(outContent);
 						indexFile.Close();
@@ -147,9 +148,10 @@ namespace Fritz.StaticBlog
 								var fm = txt.GetFrontMatter<Frontmatter>();
 								var mdHTML = Markdig.Markdown.ToHtml(doc, pipeline);
 
-
 								string outputHTML = layoutText.Replace("{{ Body }}", mdHTML);
 								outputHTML = fm.Format(outputHTML);
+								outputHTML = Minify(outputHTML);
+
 								File.WriteAllText(fileName, outputHTML);
 
 								_Posts.Add(new PostData
@@ -161,6 +163,24 @@ namespace Fritz.StaticBlog
 
 						}
 
+
+				}
+
+				private string Minify(string html) 
+				{
+
+					if (!MinifyOutput) return html;
+
+					var settings = new NUglify.Html.HtmlSettings();
+					settings.KeepTags.UnionWith(new string[] {"html", "head", "body"} );
+
+					var result = NUglify.Uglify.Html(html, settings);
+					if (result.HasErrors) {
+						throw new Exception("NUglify has errors: " + result.Errors[0].ToString());
+					}
+					html = result.Code;
+
+					return html;
 
 				}
 

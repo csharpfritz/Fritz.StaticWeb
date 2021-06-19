@@ -14,6 +14,7 @@
   <ItemGroup>
     <PackageReference Include="CommandLineParser" Version="2.8.0" />
     <PackageReference Include="Markdig" Version="0.24.0" />
+    <PackageReference Include="NUglify" Version="1.13.12" />
     <PackageReference Include="WebStoating.Markdig.Prism" Version="1.0.0" />
     <PackageReference Include="YamlDotNet" Version="11.1.1" />
   </ItemGroup>
