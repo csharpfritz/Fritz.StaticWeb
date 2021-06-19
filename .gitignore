@@ -10,11 +10,15 @@
 *.userosscache
 *.sln.docstates
 
+# Dist file from publication
+dist/
+
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 TestSite/dist/
 TestSite/indexfixture/
 TestSite/when*
+.vscode/
 
 # Mono auto generated files
 mono_crash.*
