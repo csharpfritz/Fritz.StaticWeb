@@ -24,7 +24,6 @@ namespace Fritz.StaticBlog
 				[Option('o', "output", Required = true, HelpText = "Location to write out the rendered site")]
 				public string OutputPath { get; set; }
 
-				// TODO: Implement minification
 				[Option('m', "minify", Default = (bool)false, HelpText = "Minify the output HTML")]
 				public bool MinifyOutput { get; set; } = false;
 
