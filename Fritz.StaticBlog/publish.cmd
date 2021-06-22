@@ -1,1 +1,1 @@
-dotnet publish -o publish\ -c Release -r win-x64 -p:PublishSingleFile=true --self-contained true
+dotnet publish -o dist\ -c Release -r win-x64 -p:PublishSingleFile=true --self-contained true
