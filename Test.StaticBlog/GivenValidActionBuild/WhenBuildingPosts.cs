@@ -101,7 +101,7 @@ namespace Test.StaticBlog.GivenValidActionBuild
 
 			// Assert
 			var firstPost = _sut._Posts.First();
-			Assert.StartsWith("/posts/", firstPost.Filename);
+			Assert.StartsWith("posts/", firstPost.Filename);
 
 		}
 
