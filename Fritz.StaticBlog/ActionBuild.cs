@@ -166,7 +166,7 @@ namespace Fritz.StaticBlog
 								_Posts.Add(new PostData
 								{
 										Abstract = mdHTML,
-										Filename = baseName,
+										Filename = $"/posts/{baseName}",
 										Frontmatter = fm
 								});
 

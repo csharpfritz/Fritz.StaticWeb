@@ -92,6 +92,19 @@ namespace Test.StaticBlog.GivenValidActionBuild
 
 		}
 
+		[Fact]
+		public void ShouldAddToPostsForIndexWithPostsPathInFilename()
+		{
+
+			// act
+			_sut.BuildPosts();
+
+			// Assert
+			var firstPost = _sut._Posts.First();
+			Assert.StartsWith("/posts/", firstPost.Filename);
+
+		}
+
 	}
 
 }
