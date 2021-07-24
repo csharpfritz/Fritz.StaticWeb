@@ -67,11 +67,13 @@ namespace Fritz.StaticBlog
 								if (!outValue) System.Console.WriteLine("posts folder is missing");
 						}
 
+						/*  -- Making pages folder optional --
 						if (outValue)
 						{
 								outValue = new DirectoryInfo(Path.Combine(WorkingDirectory, "pages")).Exists;
 								if (!outValue) System.Console.WriteLine("pages folder is missing");
 						}
+						**/
 
 						if (outValue)
 						{
@@ -117,7 +119,15 @@ namespace Fritz.StaticBlog
 
 				internal void BuildPages()
 				{
-						// throw new NotImplementedException();
+							
+					var outValue = new DirectoryInfo(Path.Combine(WorkingDirectory, "pages")).Exists;
+					if (!outValue) {
+						Console.WriteLine("Pages folder does not exist... skipping");
+						return;
+					}
+
+					// TODO: Build the static pages
+
 				}
 
 				internal void BuildPosts()
