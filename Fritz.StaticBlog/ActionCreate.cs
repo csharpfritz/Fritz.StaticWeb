@@ -19,8 +19,8 @@ namespace Fritz.StaticBlog
 		[Value(1, HelpText = "The name of the file to create")]
 		public string Filename { get; set; }
 
-		[Option('o', "output", Required = true, HelpText = "Location to write out the rendered site")]
-		public string OutputPath { get; set; }
+		[Option('o', "output", Required = false, HelpText = "Location to write out the rendered site")]
+		public string OutputPath { get; set; } = ".";
 
 		public override int Execute()
 		{
