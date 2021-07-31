@@ -7,6 +7,7 @@ using System.Text.Json;
 using CommandLine;
 using Markdig;
 using Markdig.Extensions.Yaml;
+using Markdig.Prism;
 using Markdig.Syntax;
 
 namespace Fritz.StaticBlog
@@ -149,6 +150,7 @@ namespace Fritz.StaticBlog
 						var pipeline = new MarkdownPipelineBuilder()
 								.UseAdvancedExtensions()
 								.UseYamlFrontMatter()
+								.UsePrism()
 								.Build();
 
 						// Load layout for post
