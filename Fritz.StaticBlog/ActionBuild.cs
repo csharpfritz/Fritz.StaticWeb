@@ -28,7 +28,10 @@ namespace Fritz.StaticBlog
 				public bool MinifyOutput { get; set; } = false;
 
 				[Option('d', "directory", Required = false, HelpText = "The directory to run the build against.  Default current directory")]
-				public overr
+				public override string WorkingDirectory { 
+					get { return base.WorkingDirectory; }
+					set { base.WorkingDirectory = value; }
+				}
 
 
 				public override int Execute()
