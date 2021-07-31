@@ -27,6 +27,9 @@ namespace Fritz.StaticBlog
 				[Option('m', "minify", Default = (bool)false, HelpText = "Minify the output HTML")]
 				public bool MinifyOutput { get; set; } = false;
 
+				[Option('d', "directory", Required = false, HelpText = "The directory to run the build against.  Default current directory")]
+				public overr
+
 
 				public override int Execute()
 				{

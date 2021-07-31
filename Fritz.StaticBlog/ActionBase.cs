@@ -14,14 +14,16 @@ namespace Fritz.StaticBlog
 
 		internal Config Config { get; set; }
 
-		[Option('d', "directory", Required = false, HelpText = "The directory to run the build against.  Default current directory")]
-		public string WorkingDirectory { get; set; } = ".";
+		public virtual string WorkingDirectory { get; set; } = ".";
 
 		protected bool ValidateConfig()
 		{
 
 			try
 			{
+
+				Console.WriteLine($"WorkingDirectory: {WorkingDirectory}");
+
 				var rdr = File.OpenRead(Path.Combine(WorkingDirectory, "config.json"));
 				var json = new StreamReader(rdr).ReadToEnd();
 				this.Config = JsonSerializer.Deserialize<Config>(json);
