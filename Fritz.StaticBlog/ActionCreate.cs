@@ -22,8 +22,8 @@ namespace Fritz.StaticBlog
 		[Option('o', "output", Required = false, HelpText = "Location to write out the rendered site")]
 		public string OutputPath { get; set; } = ".";
 
-		[Option('d', "directory", Required = false, HelpText = "The directory to run the build against.  Default current directory")]
-		public override string WorkingDirectory { 
+		[Option('w', "directory", Required = false, HelpText = "The directory to run the build against.  Default current directory")]
+		public string ThisDirectory { 
 			get { return base.WorkingDirectory; }
 			set { base.WorkingDirectory = value; }
 		}

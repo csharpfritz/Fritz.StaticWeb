@@ -27,8 +27,8 @@ namespace Fritz.StaticBlog
 				[Option('m', "minify", Default = (bool)false, HelpText = "Minify the output HTML")]
 				public bool MinifyOutput { get; set; } = false;
 
-				[Option('d', "directory", Required = false, HelpText = "The directory to run the build against.  Default current directory")]
-				public override string WorkingDirectory { 
+				[Option('w', "workdir", Default=".", Required = false, HelpText = "The directory to run the build against.  Default current directory")]
+				public string ThisDirectory { 
 					get { return base.WorkingDirectory; }
 					set { base.WorkingDirectory = value; }
 				}
@@ -36,6 +36,8 @@ namespace Fritz.StaticBlog
 
 				public override int Execute()
 				{
+
+						Console.WriteLine($"Outputting to: {OutputPath}");
 
 						var outValue = base.Execute();
 						if (outValue > 0) return outValue;
@@ -103,9 +105,10 @@ namespace Fritz.StaticBlog
 						outContent = outContent.Replace("{{ Title }}", Config.Title);
 
 						// Load the first 10 articles on the index page
+						Console.WriteLine($"Found {_Posts.Count()} posts to format");
 						var orderedPosts = _Posts.Where(p => !p.Frontmatter.Draft).OrderByDescending(p => p.Frontmatter.PublishDate);
 						var sb = new StringBuilder();
-						for (var i = 0; i < Math.Min(10, _Posts.Count); i++)
+						for (var i = 0; i < Math.Min(10, orderedPosts.Count()); i++)
 						{
 
 								var thisPost = orderedPosts.Skip(i).First();

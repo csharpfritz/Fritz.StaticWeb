@@ -14,7 +14,7 @@ namespace Fritz.StaticBlog
 
 		internal Config Config { get; set; }
 
-		public virtual string WorkingDirectory { get; set; } = ".";
+		protected string WorkingDirectory { get; set; }
 
 		protected bool ValidateConfig()
 		{
@@ -23,6 +23,9 @@ namespace Fritz.StaticBlog
 			{
 
 				Console.WriteLine($"WorkingDirectory: {WorkingDirectory}");
+
+				// Set default WorkingDirectory
+				if (string.IsNullOrEmpty(WorkingDirectory)) WorkingDirectory = ".";
 
 				var rdr = File.OpenRead(Path.Combine(WorkingDirectory, "config.json"));
 				var json = new StreamReader(rdr).ReadToEnd();
