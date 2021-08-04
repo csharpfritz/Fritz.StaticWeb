@@ -36,10 +36,10 @@ namespace Test.StaticBlog.GivenValidActionCreate
 				},
 				ContentType = "post",
 				OutputPath = targetFolderName,
-				WorkingDirectory = workingDirectory
+				ThisDirectory = workingDirectory
 			};
 
-			var destFolder = Path.Combine(sut.WorkingDirectory, sut.OutputPath, "posts");
+			var destFolder = Path.Combine(sut.ThisDirectory, sut.OutputPath, "posts");
 			if (!Directory.Exists(destFolder)) Directory.CreateDirectory(destFolder);
 
 			Output = output;
@@ -54,7 +54,7 @@ namespace Test.StaticBlog.GivenValidActionCreate
 			sut.Filename = "test";
 			sut.Execute();
 
-			var outFile = new FileInfo(Path.Combine(sut.WorkingDirectory, sut.OutputPath, "posts", sut.Filename + ".md"));
+			var outFile = new FileInfo(Path.Combine(sut.ThisDirectory, sut.OutputPath, "posts", sut.Filename + ".md"));
 			Output.WriteLine($"File should be written to: {outFile.FullName}");
 			Assert.True(outFile.Exists);
 
@@ -67,7 +67,7 @@ namespace Test.StaticBlog.GivenValidActionCreate
 			sut.Filename = "testFrontMatter";
 			sut.Execute();
 
-			var outFile = File.OpenText(Path.Combine(sut.WorkingDirectory, sut.OutputPath, "posts", sut.Filename + ".md"));
+			var outFile = File.OpenText(Path.Combine(sut.ThisDirectory, sut.OutputPath, "posts", sut.Filename + ".md"));
 
 			var contents = outFile.ReadToEnd();
 			Assert.StartsWith("---", contents);

@@ -25,7 +25,7 @@ namespace Test.StaticBlog.GivenWwwrootContents
 			{
 				Force = false,
 				OutputPath = targetFolderName,
-				WorkingDirectory = workingDirectory,
+				ThisDirectory = workingDirectory,
 				Config = new Config
 				{
 					Theme = "kliptok",
@@ -33,7 +33,7 @@ namespace Test.StaticBlog.GivenWwwrootContents
 				}
 			};
 
-			OutputFolder = new DirectoryInfo(Path.Combine(_sut.WorkingDirectory, targetFolderName));
+			OutputFolder = new DirectoryInfo(Path.Combine(_sut.ThisDirectory, targetFolderName));
 			if (!OutputFolder.Exists)
 			{
 				folderLock.EnterWriteLock();
