@@ -100,8 +100,12 @@ namespace Fritz.StaticBlog
 			if (outValue)
 			{
 				var exists = new FileInfo(Path.Combine(WorkingDirectory, LastBuildFilename)).Exists;
-				if (!exists) System.Console.WriteLine($"LastBuild file is missing - Complete build requested");
-				_LastBuild = new LastBuild { Timestamp=DateTime.MinValue };
+				if (!exists) {
+					System.Console.WriteLine($"LastBuild file is missing - Complete build requested");
+					_LastBuild = new LastBuild { Timestamp=DateTime.MinValue };
+				} else {
+					// TODO: Read the last build file
+				}
 			}
 
 			return outValue;
