@@ -1,48 +1,26 @@
 using System;
 using System.IO;
-using Fritz.StaticBlog;
+using Xunit;
 
-namespace Test.StaticBlog.GivenLastBuildFile 
+namespace Test.StaticBlog.GivenLastBuildFile
 {
 
-	public class WhenBuilding : TestSiteBaseFixture, IDisposable 
+	public class WhenBuilding : BaseFixture
 	{
 
-		private readonly ActionBuild _sut;
-		private readonly DateTime _LastBuildDate;
-
-		public WhenBuilding()
+		[Fact]
+		public void ShouldReadLastBuildDate()
 		{
-				
-			base.Initialize();
 
-			_sut = new ActionBuild
-			{
-				Force = false,
-				OutputPath = TargetFolderName,
-				ThisDirectory = WorkingDirectory.FullName,
-				LastBuildFilename = $".lastbuild.{Guid.NewGuid()}.json",
-				Config = new Config
-				{
-					Theme = "kliptok",
-					Title = "The Unit Test Website"
-				}
-			};
+			// act
+			_sut.Validate();
 
-			_LastBuildDate = DateTime.Today.AddDays(-5).AddHours(10);
-
-		}
- 
-		public void Dispose()
-		{
-			
-			File.Delete(Path.Combine(WorkingDirectory.FullName, _sut.LastBuildFilename));
+			// assert
+			Assert.Equal(_LastBuildDate, _sut._LastBuild?.Timestamp);
 
 		}
 
+	}
 
-
-
-	}	
 
 }

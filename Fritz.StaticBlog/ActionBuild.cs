@@ -104,7 +104,9 @@ namespace Fritz.StaticBlog
 					System.Console.WriteLine($"LastBuild file is missing - Complete build requested");
 					_LastBuild = new LastBuild { Timestamp=DateTime.MinValue };
 				} else {
-					// TODO: Read the last build file
+					var file = File.OpenRead(Path.Combine(WorkingDirectory, LastBuildFilename));
+					_LastBuild = JsonSerializer.Deserialize<LastBuild>(file);
+					file.Dispose(); 
 				}
 			}
 
