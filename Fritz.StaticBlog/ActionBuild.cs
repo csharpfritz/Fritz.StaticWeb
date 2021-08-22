@@ -177,7 +177,7 @@ namespace Fritz.StaticBlog
 			// Load layout for post
 			var layoutText = File.ReadAllText(Path.Combine(WorkingDirectory, "themes", Config.Theme, "layouts", "posts.html"));
 
-			foreach (var post in postsFolder.GetFiles("*.md"))
+			foreach (var post in postsFolder.GetFiles("*.md").Where(f => f.LastWriteTimeUtc > (_LastBuild?.Timestamp ?? DateTime.MinValue)).ToArray())
 			{
 
 				var txt = File.ReadAllText(post.FullName, Encoding.UTF8);

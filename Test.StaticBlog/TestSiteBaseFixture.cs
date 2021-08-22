@@ -14,9 +14,14 @@ namespace Test.StaticBlog
 		protected DirectoryInfo OutputFolder { get; private set; }
 
 		protected DirectoryInfo WorkingDirectory { get; private set;}
-		protected string TargetFolderName { get; private set; }
+		protected string TargetFolderName { get; set; }
 
-		protected void Initialize() 
+		public TestSiteBaseFixture()
+		{
+			TargetFolderName = GetType().Name.ToLowerInvariant();
+		}
+
+		public virtual void Initialize()
 		{
 
 			var workingDirectory = Assembly.GetAssembly(GetType()).Location.Contains(@"\.vs\") ?
@@ -24,9 +29,13 @@ namespace Test.StaticBlog
 				"../../../../TestSite";
 			this.WorkingDirectory = new DirectoryInfo(workingDirectory);
 
-			TargetFolderName = GetType().Name.ToLowerInvariant();
+			InitializeOutputFolder(Path.Combine(workingDirectory, TargetFolderName));
 
-			OutputFolder = new DirectoryInfo(Path.Combine(workingDirectory, TargetFolderName));
+		}
+
+		private void InitializeOutputFolder(string workingDirectory)
+		{
+			OutputFolder = new DirectoryInfo(workingDirectory);
 			if (!OutputFolder.Exists)
 			{
 				folderLock.EnterWriteLock();
@@ -34,10 +43,7 @@ namespace Test.StaticBlog
 				folderLock.ExitWriteLock();
 			}
 			OutputPostsFolder = new DirectoryInfo(Path.Combine(OutputFolder.FullName, "posts"));
-
 		}
-
-
 	}
 
 }

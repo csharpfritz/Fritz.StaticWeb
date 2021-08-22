@@ -12,6 +12,9 @@ namespace Test.StaticBlog.GivenLastBuildFile
 		public void ShouldReadLastBuildDate()
 		{
 
+			// arrange
+			Initialize();
+
 			// act
 			_sut.Validate();
 

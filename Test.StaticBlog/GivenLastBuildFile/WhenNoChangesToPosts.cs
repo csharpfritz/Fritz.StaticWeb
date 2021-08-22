@@ -9,7 +9,16 @@ namespace Test.StaticBlog.GivenLastBuildFile
 		public void ShouldNotRebuildPosts()
 		{
 
-			Assert.False(true);
+			// arrange
+			TargetFolderName = Guid.NewGuid().ToString();
+			Initialize();
+
+			// act
+			_sut.Validate();
+			_sut.BuildPosts();
+
+			// assert
+			Assert.Empty(base.OutputPostsFolder.GetFiles());
 
 		}
 
@@ -21,6 +30,13 @@ namespace Test.StaticBlog.GivenLastBuildFile
 
 		}
 
+		public override void Dispose()
+		{
+
+			Directory.Delete(_sut.OutputPath, true);
+
+			base.Dispose();
+		}
 
 	}
 

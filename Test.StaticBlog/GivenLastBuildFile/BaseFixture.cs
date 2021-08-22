@@ -6,10 +6,10 @@ namespace Test.StaticBlog.GivenLastBuildFile
 	public class BaseFixture : TestSiteBaseFixture, IDisposable 
 	{
 
-		protected readonly ActionBuild _sut;
-		protected readonly DateTime _LastBuildDate;
+		protected ActionBuild _sut { get; private set; }
+		protected DateTime _LastBuildDate;
 
-		public BaseFixture()
+		public override void Initialize()
 		{
 				
 			base.Initialize();
@@ -17,7 +17,7 @@ namespace Test.StaticBlog.GivenLastBuildFile
 			_sut = new ActionBuild
 			{
 				Force = false,
-				OutputPath = TargetFolderName,
+				OutputPath = OutputFolder.FullName,
 				ThisDirectory = WorkingDirectory.FullName,
 				LastBuildFilename = $".lastbuild.{Guid.NewGuid()}.json",
 				Config = new Config
@@ -35,7 +35,7 @@ namespace Test.StaticBlog.GivenLastBuildFile
 
 		}
  
-		public void Dispose()
+		public virtual void Dispose()
 		{
 			
 			File.Delete(Path.Combine(WorkingDirectory.FullName, _sut.LastBuildFilename));
