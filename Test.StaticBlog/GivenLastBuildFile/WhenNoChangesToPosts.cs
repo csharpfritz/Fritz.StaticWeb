@@ -1,4 +1,6 @@
-﻿using Xunit;
+﻿using System;
+using System.IO;
+using Xunit;
 
 namespace Test.StaticBlog.GivenLastBuildFile
 {

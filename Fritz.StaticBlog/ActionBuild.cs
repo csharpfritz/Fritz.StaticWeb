@@ -105,7 +105,7 @@ namespace Fritz.StaticBlog
 					_LastBuild = new LastBuild { Timestamp=DateTime.MinValue };
 				} else {
 					var file = File.OpenRead(Path.Combine(WorkingDirectory, LastBuildFilename));
-					_LastBuild = JsonSerializer.Deserialize<LastBuild>(file);
+					_LastBuild = JsonSerializer.DeserializeAsync<LastBuild>(file).GetAwaiter().GetResult();
 					file.Dispose(); 
 				}
 			}

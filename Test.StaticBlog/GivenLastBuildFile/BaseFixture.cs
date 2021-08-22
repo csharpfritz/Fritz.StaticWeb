@@ -1,4 +1,6 @@
-﻿using System.Text.Json;
+﻿using System;
+using System.IO;
+using System.Text.Json;
 using Fritz.StaticBlog;
 
 namespace Test.StaticBlog.GivenLastBuildFile
@@ -29,7 +31,7 @@ namespace Test.StaticBlog.GivenLastBuildFile
 
 			_LastBuildDate = DateTime.Today.AddDays(-5).AddHours(10);
 			var lastBuildFile = File.OpenWrite(Path.Combine(WorkingDirectory.FullName, _sut.LastBuildFilename));
-			JsonSerializer.Serialize<LastBuild>(lastBuildFile, new LastBuild { Timestamp = _LastBuildDate });
+			JsonSerializer.SerializeAsync<LastBuild>(lastBuildFile, new LastBuild { Timestamp = _LastBuildDate }).GetAwaiter().GetResult();
 			lastBuildFile.Flush();
 			lastBuildFile.Close();
 
