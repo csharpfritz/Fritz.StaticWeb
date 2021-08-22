@@ -23,11 +23,13 @@ namespace Test.StaticBlog.GivenValidActionBuild
 				Frontmatter = new Fritz.StaticBlog.Frontmatter {
 					Draft = false,
 					PublishDate = DateTime.Today.AddDays(-1),
-					Title = "First post!"
+					Title = "First post!",
 				},
+				LastUpdate = DateTime.Today.AddDays(-1),
 				Abstract = "This is my first post"
 			});
 
+			_sut.Validate();
 			_sut.BuildIndex();
 
 			Output = output;

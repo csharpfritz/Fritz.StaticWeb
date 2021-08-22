@@ -6,26 +6,22 @@ using Fritz.StaticBlog;
 
 namespace Test.StaticBlog.GivenWwwrootContents
 {
-	public abstract class BaseFixture {
+	public abstract class BaseFixture : TestSiteBaseFixture
+	{
 
 		internal ActionBuild _sut;
-		private static ReaderWriterLockSlim folderLock = new();
-
 
 		public BaseFixture()
 		{
 
-			var workingDirectory = Assembly.GetAssembly(GetType()).Location.Contains(@"\.vs\") ?
-					@"..\..\..\..\..\..\..\..\..\TestSite" :
-					"../../../../TestSite";
+			base.Initialize();
 
 
-			string targetFolderName = GetType().Name.ToLowerInvariant();
 			_sut = new ActionBuild
 			{
 				Force = false,
-				OutputPath = targetFolderName,
-				ThisDirectory = workingDirectory,
+				OutputPath = TargetFolderName,
+				ThisDirectory = WorkingDirectory.FullName,
 				Config = new Config
 				{
 					Theme = "kliptok",
@@ -33,20 +29,7 @@ namespace Test.StaticBlog.GivenWwwrootContents
 				}
 			};
 
-			OutputFolder = new DirectoryInfo(Path.Combine(_sut.ThisDirectory, targetFolderName));
-			if (!OutputFolder.Exists)
-			{
-				folderLock.EnterWriteLock();
-				OutputFolder.Create();
-				folderLock.ExitWriteLock();
-			}
-			OutputPostsFolder = new DirectoryInfo(Path.Combine(OutputFolder.FullName, "posts"));
-
 		}
-
-		public DirectoryInfo OutputFolder { get; private set; }
-		public DirectoryInfo OutputPostsFolder { get; private set; }
-
 
 	}
 

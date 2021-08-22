@@ -1,3 +1,5 @@
+using System;
+
 namespace Fritz.StaticBlog
 {
 
@@ -6,6 +8,8 @@ namespace Fritz.StaticBlog
 
 		public Frontmatter Frontmatter { get; set; }
 
+		public DateTime LastUpdate { get; set; }
+		
 		public string Filename { get; set; }
 
 		public string Abstract { get; set; }
