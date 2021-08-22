@@ -117,7 +117,7 @@ namespace Fritz.StaticBlog
 		internal void BuildIndex()
 		{
 
-			if (!_Posts.Any(p => p.LastUpdate > _LastBuild?.Timestamp)) {
+			if (!Force && !_Posts.Any(p => p.LastUpdate > _LastBuild?.Timestamp)) {
 				Console.WriteLine("No new posts found.  Skipping build of index");
 				return;
 			}
@@ -194,7 +194,7 @@ namespace Fritz.StaticBlog
 				var fm = txt.GetFrontMatter<Frontmatter>();
 				var mdHTML = Markdig.Markdown.ToHtml(doc, pipeline);
 
-				if (post.LastWriteTimeUtc > (_LastBuild?.Timestamp ?? DateTime.MinValue)) {
+				if (Force || post.LastWriteTimeUtc > (_LastBuild?.Timestamp ?? DateTime.MinValue)) {
 
 					string outputHTML = layoutText.Replace("{{ Body }}", mdHTML);
 					outputHTML = fm.Format(outputHTML);
