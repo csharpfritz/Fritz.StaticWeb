@@ -32,6 +32,7 @@ namespace Test.StaticBlog.GivenLastBuildFile
 			// arrange
 			TargetFolderName = Guid.NewGuid().ToString();
 			Initialize();
+			_sut.Force = true;
 
 			// act
 			_sut.Validate();
