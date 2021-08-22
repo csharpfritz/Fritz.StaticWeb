@@ -117,6 +117,8 @@ namespace Fritz.StaticBlog
 		internal void BuildIndex()
 		{
 
+			if (!_Posts.Any(p => p.LastUpdate > _LastBuild?.Timestamp)) return;
+
 			using var indexFile = File.CreateText(Path.Combine(WorkingDirectory, OutputPath, "index.html"));
 			using var indexLayout = File.OpenText(Path.Combine(WorkingDirectory, "themes", Config.Theme, "layouts", "index.html"));
 
@@ -177,7 +179,7 @@ namespace Fritz.StaticBlog
 			// Load layout for post
 			var layoutText = File.ReadAllText(Path.Combine(WorkingDirectory, "themes", Config.Theme, "layouts", "posts.html"));
 
-			foreach (var post in postsFolder.GetFiles("*.md").Where(f => f.LastWriteTimeUtc > (_LastBuild?.Timestamp ?? DateTime.MinValue)).ToArray())
+			foreach (var post in postsFolder.GetFiles("*.md"))
 			{
 
 				var txt = File.ReadAllText(post.FullName, Encoding.UTF8);
@@ -189,17 +191,22 @@ namespace Fritz.StaticBlog
 				var fm = txt.GetFrontMatter<Frontmatter>();
 				var mdHTML = Markdig.Markdown.ToHtml(doc, pipeline);
 
-				string outputHTML = layoutText.Replace("{{ Body }}", mdHTML);
-				outputHTML = fm.Format(outputHTML);
-				outputHTML = Minify(outputHTML);
+				if (post.LastWriteTimeUtc > (_LastBuild?.Timestamp ?? DateTime.MinValue)) {
 
-				File.WriteAllText(fileName, outputHTML);
+					string outputHTML = layoutText.Replace("{{ Body }}", mdHTML);
+					outputHTML = fm.Format(outputHTML);
+					outputHTML = Minify(outputHTML);
+
+					File.WriteAllText(fileName, outputHTML);
+
+				}
 
 				_Posts.Add(new PostData
 				{
 					Abstract = mdHTML,
 					Filename = $"posts/{baseName}",
-					Frontmatter = fm
+					Frontmatter = fm,
+					LastUpdate = post.LastWriteTimeUtc
 				});
 
 			}

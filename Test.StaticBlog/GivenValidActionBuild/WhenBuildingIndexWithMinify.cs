@@ -25,10 +25,12 @@ namespace Test.StaticBlog.GivenValidActionBuild
 					PublishDate = DateTime.Today.AddDays(-1),
 					Title = "First post!"
 				},
-				Abstract = "This is my first post"
+				Abstract = "This is my first post",
+				LastUpdate = DateTime.Today.AddDays(-1)
 			});
 
 			_sut.MinifyOutput = true;
+			_sut.Validate();
 			_sut.BuildIndex();
 
 			Output = output;

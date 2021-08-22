@@ -28,7 +28,17 @@ namespace Test.StaticBlog.GivenLastBuildFile
 		public void ShouldNotRebuildIndex()
 		{
 
-			Assert.False(true);
+			// arrange
+			TargetFolderName = Guid.NewGuid().ToString();
+			Initialize();
+
+			// act
+			_sut.Validate();
+			_sut.BuildPosts();
+			_sut.BuildIndex();
+
+			// assert
+			Assert.Empty(base.OutputFolder.GetFiles("index.html"));
 
 		}
 
