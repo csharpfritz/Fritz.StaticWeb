@@ -117,7 +117,10 @@ namespace Fritz.StaticBlog
 		internal void BuildIndex()
 		{
 
-			if (!_Posts.Any(p => p.LastUpdate > _LastBuild?.Timestamp)) return;
+			if (!_Posts.Any(p => p.LastUpdate > _LastBuild?.Timestamp)) {
+				Console.WriteLine("No new posts found.  Skipping build of index");
+				return;
+			}
 
 			using var indexFile = File.CreateText(Path.Combine(WorkingDirectory, OutputPath, "index.html"));
 			using var indexLayout = File.OpenText(Path.Combine(WorkingDirectory, "themes", Config.Theme, "layouts", "index.html"));
