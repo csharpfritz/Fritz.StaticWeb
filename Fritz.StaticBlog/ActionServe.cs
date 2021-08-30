@@ -42,6 +42,8 @@ namespace Fritz.StaticBlog
 		public class Startup 
 		{
 
+			// TODO: Inspired by Rick's live server at: https://github.com/RickStrahl/LiveReloadServer/blob/master/LiveReloadServer/Startup.cs
+
 			public void ConfigureServices(IServiceCollection services)
 			{
 				
