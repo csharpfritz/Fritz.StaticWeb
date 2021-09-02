@@ -9,9 +9,10 @@ namespace Fritz.StaticBlog
 
 		static void Main(string[] args)
 		{
-			var arguments = Parser.Default.ParseArguments<ActionBuild, ActionCreate>(args).MapResult(
+			var arguments = Parser.Default.ParseArguments<ActionBuild, ActionCreate, ActionServe>(args).MapResult(
 				(ActionBuild options) => options.Execute(),
 				(ActionCreate options) => options.Execute(),
+				(ActionServe options) => options.Execute(),
 				errors => 1
 			);
 
