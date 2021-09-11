@@ -44,6 +44,9 @@ namespace Fritz.StaticBlog.Server
 				});
 				app.UseStaticFiles(OutputPath);
 
+				// Need to attach a web socket listener to the app
+				app.UseLiveReload();
+
 			}
 
 		}
