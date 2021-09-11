@@ -1,19 +1,14 @@
-using System.Collections.Generic;
-using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
 using CommandLine;
+using Fritz.StaticBlog.Server;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
 
 namespace Fritz.StaticBlog
 {
 
 	[Verb("serve", HelpText = "Build the website, serve it and serve updates")]
-	public class ActionServe : ActionBase, ICommandLineAction
+	public partial class ActionServe : ActionBase, ICommandLineAction
 	{
 		private IHost _Host;
 
@@ -55,77 +50,6 @@ namespace Fritz.StaticBlog
                 .ConfigureWebHostDefaults(webBuilder => {
 										webBuilder.UseStartup<Startup>();
 								});
-		}
-
-		internal class Startup 
-		{
-
-			public static string OutputPath { get; set; }
-
-			public static string SourceFolder { get; set; }
-
-			// TODO: Inspired by Rick's live server at: https://github.com/RickStrahl/LiveReloadServer/blob/master/LiveReloadServer/Startup.cs
-
-			public void ConfigureServices(IServiceCollection services)
-			{
-				
-				services.AddHostedService(_ => new BuildService(SourceFolder, OutputPath));
-
-			}
-
-			public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
-			{
-				
-				app.UseDefaultFiles(new DefaultFilesOptions
-				{
-					// TODO: Change to the location captured from the command line
-						FileProvider = new PhysicalFileProvider(OutputPath),
-						DefaultFileNames = new List<string>( new string[] { "index.html" } )
-				});
-
-			}
-
-		}
-
-		internal class BuildService : IHostedService
-		{
-			private string _SourceFolder;
-			private string _OutputPath;
-			private FileSystemWatcher _Watcher;
-
-			public BuildService(string sourceFolder, string outputPath)
-			{
-				this._SourceFolder = sourceFolder;
-				this._OutputPath = outputPath;
-			}
-
-			public Task StartAsync(CancellationToken cancellationToken)
-			{
-
-				_Watcher = new FileSystemWatcher(_SourceFolder) {
-					EnableRaisingEvents = true,
-					IncludeSubdirectories = true
-				};
-
-				_Watcher.Changed += (sender, e) => {
-					// Rebuild website and raise event to update browser
-					// TODO: Need backoff / throttle logic
-
-					var build = new ActionBuild {
-
-					};
-
-				};
-
-				return Task.CompletedTask;
-
-			}
-
-			public Task StopAsync(CancellationToken cancellationToken)
-			{
-				_Watcher.Dispose();
-				return Task.CompletedTask;
-			}
 		}
 
 	}
