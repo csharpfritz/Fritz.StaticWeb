@@ -1,4 +1,7 @@
 using System.Collections.Generic;
+using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 using CommandLine;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -66,6 +69,8 @@ namespace Fritz.StaticBlog
 			public void ConfigureServices(IServiceCollection services)
 			{
 				
+				services.AddHostedService(_ => new BuildService(SourceFolder, OutputPath));
+
 			}
 
 			public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -80,6 +85,47 @@ namespace Fritz.StaticBlog
 
 			}
 
+		}
+
+		internal class BuildService : IHostedService
+		{
+			private string _SourceFolder;
+			private string _OutputPath;
+			private FileSystemWatcher _Watcher;
+
+			public BuildService(string sourceFolder, string outputPath)
+			{
+				this._SourceFolder = sourceFolder;
+				this._OutputPath = outputPath;
+			}
+
+			public Task StartAsync(CancellationToken cancellationToken)
+			{
+
+				_Watcher = new FileSystemWatcher(_SourceFolder) {
+					EnableRaisingEvents = true,
+					IncludeSubdirectories = true
+				};
+
+				_Watcher.Changed += (sender, e) => {
+					// Rebuild website and raise event to update browser
+					// TODO: Need backoff / throttle logic
+
+					var build = new ActionBuild {
+
+					};
+
+				};
+
+				return Task.CompletedTask;
+
+			}
+
+			public Task StopAsync(CancellationToken cancellationToken)
+			{
+				_Watcher.Dispose();
+				return Task.CompletedTask;
+			}
 		}
 
 	}
