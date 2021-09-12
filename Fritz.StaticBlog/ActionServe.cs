@@ -49,6 +49,9 @@ namespace Fritz.StaticBlog
 			return Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webBuilder => {
 										webBuilder.UseStartup<Startup>();
+										webBuilder.ConfigureKestrel(options => {
+											options.ListenAnyIP(35729);
+										});
 								});
 		}
 

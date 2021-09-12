@@ -1,7 +1,11 @@
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Runtime.InteropServices;
 using Fritz.StaticBlog.Server;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 
@@ -33,9 +37,26 @@ namespace Fritz.StaticBlog.Server
 				// trigger live reload
 			}
 
-			public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+		private static void OpenBrowser(string url)
+		{
+
+			var browser =
+				RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? new ProcessStartInfo("cmd", $"/c start {url}") :
+				RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? new ProcessStartInfo("open", url) :
+				new ProcessStartInfo("xdg-open", url); //linux, unix-like
+
+			Process.Start(browser);
+
+		}
+
+
+			public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IApplicationLifetime appLifetime)
 			{
-				
+
+				appLifetime.ApplicationStarted.Register(() => OpenBrowser(
+						app.ServerFeatures.Get<IServerAddressesFeature>().Addresses.First()));
+						
+
 				app.UseDefaultFiles(new DefaultFilesOptions
 				{
 					// TODO: Change to the location captured from the command line
