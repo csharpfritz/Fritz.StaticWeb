@@ -3,28 +3,29 @@ using YamlDotNet.Serialization;
 
 namespace Fritz.StaticBlog
 {
-		
-	public class Frontmatter {
 
-		[YamlMember(Alias = "title")]
-    public string Title { get; set; }
+    public class Frontmatter
+    {
 
-		[YamlMember(Alias = "draft")]
-    public bool Draft { get; set; }
+        [YamlMember(Alias = "title")]
+        public string Title { get; set; }
 
-		[YamlMember(Alias = "publishdate")]
-		public DateTime PublishDate { get; set; }
+        [YamlMember(Alias = "draft")]
+        public bool Draft { get; set; }
 
-		internal string Format(string sampleText) 
-		{
+        [YamlMember(Alias = "publishdate")]
+        public DateTime PublishDate { get; set; }
 
-			var outText = sampleText.Clone().ToString();
-			outText = outText.Replace("{{ PublishDate }}", PublishDate.ToString());
-			outText = outText.Replace("{{ Title }}", Title);
+        internal string Format(string sampleText)
+        {
 
-			return outText;
+            var outText = sampleText.Clone().ToString();
+            outText = outText.Replace("{{ PublishDate }}", PublishDate.ToString());
+            outText = outText.Replace("{{ Title }}", Title);
 
-		}
-	}
+            return outText;
+
+        }
+    }
 
 }

@@ -41,12 +41,13 @@ namespace Test.StaticBlog.GivenValidActionBuild
 				folderLock.ExitWriteLock();
 			}
 			OutputPostsFolder = new DirectoryInfo(Path.Combine(OutputFolder.FullName, "posts"));
+			OutputRssFile = new FileInfo(Path.Combine(OutputFolder.FullName, "rss.xml"));	
 
 		}
 
 		public DirectoryInfo OutputFolder { get; private set; }
 		public DirectoryInfo OutputPostsFolder { get; private set; }
-
+		public FileInfo OutputRssFile { get; private set; }
 
 	}
 
