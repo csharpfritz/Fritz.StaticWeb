@@ -245,9 +245,9 @@ if (!outValue) System.Console.WriteLine("pages folder is missing");
 		foreach (var post in _Posts.Where(p => !p.Frontmatter.Draft).OrderByDescending(p => p.Frontmatter.PublishDate))
 		{
 
-			var posH2 = post.Abstract.IndexOf("<h2>");
+			var posH2 = post.Abstract.IndexOf("<h2");
 			posH2 = posH2 < 0 ? post.Abstract.Length : posH2;
-			var postAbstract = post.Abstract.Substring(0, posH2);
+			var postAbstract = post.Abstract.Substring(0, posH2).Trim();
 			var rssItem = $"<item>\n<title>{post.Frontmatter.Title}</title>\n<link>{Config.Link}/posts/{post.Filename}</link>\n<description>{postAbstract}</description>\n<pubDate>{post.Frontmatter.PublishDate.ToString("r")}</pubDate>\n<guid>{Config.Link}/posts/{post.Filename}</guid>\n</item>\n";
 			rssItems.Add(rssItem);
 
@@ -255,7 +255,10 @@ if (!outValue) System.Console.WriteLine("pages folder is missing");
 
 		var rssFooter = "\n</channel>\n</rss>";
 
-		using var rssFile = File.OpenWrite(Path.Combine(WorkingDirectory, OutputPath, "rss.xml"));
+		var rssFilename = Path.Combine(WorkingDirectory, OutputPath, "rss.xml");
+		File.Delete(rssFilename);
+
+		using var rssFile = File.OpenWrite(rssFilename);
 		rssFile.Write(Encoding.UTF8.GetBytes(rssHeader));
 		rssFile.Write(Encoding.UTF8.GetBytes(rssHeader2));
 

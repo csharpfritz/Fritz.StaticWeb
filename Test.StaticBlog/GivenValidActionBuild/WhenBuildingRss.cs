@@ -2,6 +2,8 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Text;
+using System.Text.Unicode;
 using System.Xml;
 using Xunit;
 
@@ -22,6 +24,30 @@ public class WhenBuildingRss : BaseFixture
 	{
 
 		_sut.BuildRss();
+
+	}
+
+	[Fact]
+	public void ShouldDeleteExistingRssFile()
+	{
+
+		// arrange
+		OutputRssFile.Delete();
+		const string testContent = "REMOVE THIS CONTENT";
+
+		using (var rssFile = File.OpenWrite(OutputRssFile.FullName))
+		{
+			rssFile.Write(Encoding.UTF8.GetBytes(testContent));
+			rssFile.Flush();
+		}
+
+		// act
+		_sut.BuildRss();
+
+		// assert
+		var contents = File.ReadAllText(OutputRssFile.FullName);
+		Assert.DoesNotContain(testContent, contents);
+
 
 	}
 
@@ -116,7 +142,7 @@ public class WhenBuildingRss : BaseFixture
 				Title = "First post!",
 			},
 			LastUpdate = DateTime.Today.AddDays(-1),
-			Abstract = "This is my first post.  I write a lot of content <h2>This is the first child header</h2>"
+			Abstract = "This is my first post.  I write a lot of content <h2 id=\"some-content\">This is the first child header</h2>"
 		});
 
 		// act
@@ -125,7 +151,7 @@ public class WhenBuildingRss : BaseFixture
 
 		// assert
 		var contents = File.ReadAllText(OutputRssFile.FullName);
-		Assert.DoesNotContain("<h2>", contents);
+		Assert.DoesNotContain("<h2", contents);
 
 	}
 
