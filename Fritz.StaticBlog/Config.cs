@@ -25,6 +25,9 @@ namespace Fritz.StaticBlog
 		[JsonPropertyName("webmaster_email")]
 		public string WebmasterEmail { get; set; }
 
+		[JsonPropertyName("facebook_id")]
+		public string FacebookId { get; set; }
+
 	}
 
 }

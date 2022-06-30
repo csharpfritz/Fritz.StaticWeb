@@ -203,12 +203,15 @@ if (!outValue) System.Console.WriteLine("pages folder is missing");
 
 			var doc = Markdig.Markdown.Parse(txt, pipeline);
 			var fm = txt.GetFrontMatter<Frontmatter>();
+
+			var thisLayout = InsertHeadContent(fm, layoutText);
+
 			var mdHTML = Markdig.Markdown.ToHtml(doc, pipeline);
 
 			if (Force || post.LastWriteTimeUtc > (_LastBuild?.Timestamp ?? DateTime.MinValue))
 			{
 
-				string outputHTML = layoutText.Replace("{{ Body }}", mdHTML);
+				string outputHTML = thisLayout.Replace("{{ Body }}", mdHTML);
 				outputHTML = fm.Format(outputHTML);
 				outputHTML = Minify(outputHTML);
 
@@ -226,6 +229,36 @@ if (!outValue) System.Console.WriteLine("pages folder is missing");
 
 		}
 
+
+	}
+
+	internal string InsertHeadContent(Frontmatter fm, string layout) 
+	{
+
+		var workingText = layout;
+
+		var ogHeaders = $"<meta property=\"og:title\" content=\"{fm.Title}\">\n" +
+			$"<meta property=\"og:description\" content=\"{fm.Description}\" >\n" +
+			$"<meta property=\"og:image\" content=\"{fm.Preview}\">" +
+			"<meta property=\"og:type\" content=\"website\">" +
+			$"<meta property=\"fb:app_id\" content=\"{Config.FacebookId}\">" +
+			"</head>";
+		//$"< meta property = "og:url" content = "https://kliptok.com/@Model.Channel.DisplayName.ToLowerInvariant()" >
+		//< meta property = "og:site_name" content = "KlipTok - Social Media Fun for Twitch Clips" >
+
+		workingText = workingText.Replace("</head>", ogHeaders, StringComparison.InvariantCultureIgnoreCase);
+
+		var twitterHeaders = $"\t<meta name=\"twitter:card\" content=\"summary_large_image\">\r\n\t" +
+			// $"<meta name=\"twitter:site\" content=\"@@thekliptok\">\r\n\t" +
+			$"<meta name=\"twitter:title\" content=\"{fm.Title}\">\r\n\t" +
+			$"<meta name=\"twitter:description\" content=\"{fm.Description}\">\r\n\t" +
+			$"<meta name=\"twitter:image\" content=\"{fm.Preview}\">\r\n" +
+			"</head>";
+
+
+		workingText = workingText.Replace("</head>", twitterHeaders, StringComparison.InvariantCultureIgnoreCase);
+
+		return workingText;
 
 	}
 
