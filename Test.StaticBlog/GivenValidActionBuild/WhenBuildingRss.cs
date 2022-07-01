@@ -1,11 +1,5 @@
-
-using System;
-using System.IO;
-using System.Linq;
 using System.Text;
-using System.Text.Unicode;
 using System.Xml;
-using Xunit;
 
 namespace Test.StaticBlog.GivenValidActionBuild;
 
@@ -102,10 +96,10 @@ public class WhenBuildingRss : BaseFixture
 		// arrange
 		// Clear the folder to ensure this file is written
 		if (OutputRssFile.Exists) OutputRssFile.Delete();
-		_sut._Posts.Add(new Fritz.StaticBlog.PostData
+		_sut._Posts.Add(new PostData
 		{
 			Filename = "first_post.html",
-			Frontmatter = new Fritz.StaticBlog.Frontmatter
+			Frontmatter = new Frontmatter
 			{
 				Draft = false,
 				PublishDate = DateTime.Today.AddDays(-1),
@@ -132,10 +126,10 @@ public class WhenBuildingRss : BaseFixture
 		// arrange
 		// Clear the folder to ensure this file is written
 		if (OutputRssFile.Exists) OutputRssFile.Delete();
-		_sut._Posts.Add(new Fritz.StaticBlog.PostData
+		_sut._Posts.Add(new PostData
 		{
 			Filename = "first_post.html",
-			Frontmatter = new Fritz.StaticBlog.Frontmatter
+			Frontmatter = new Frontmatter
 			{
 				Draft = false,
 				PublishDate = DateTime.Today.AddDays(-1),
@@ -162,10 +156,10 @@ public class WhenBuildingRss : BaseFixture
 		// arrange
 		// Clear the folder to ensure this file is written
 		if (OutputRssFile.Exists) OutputRssFile.Delete();
-		_sut._Posts.Add(new Fritz.StaticBlog.PostData
+		_sut._Posts.Add(new PostData
 		{
 			Filename = "first_post.html",
-			Frontmatter = new Fritz.StaticBlog.Frontmatter
+			Frontmatter = new Frontmatter
 			{
 				Draft = false,
 				PublishDate = DateTime.Today.AddDays(-1),

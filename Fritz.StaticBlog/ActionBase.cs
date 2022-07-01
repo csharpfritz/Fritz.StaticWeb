@@ -1,65 +1,57 @@
-﻿using CommandLine;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
+﻿using System.Text.Json;
 
-namespace Fritz.StaticBlog
+namespace Fritz.StaticBlog;
+
+public abstract class ActionBase
 {
-	public abstract class ActionBase
+
+	internal Config Config { get; set; }
+
+	protected string WorkingDirectory { get; set; }
+
+	protected bool ValidateConfig()
 	{
 
-		internal Config Config { get; set; }
-
-		protected string WorkingDirectory { get; set; }
-
-		protected bool ValidateConfig()
+		try
 		{
 
-			try
-			{
+			Console.WriteLine($"WorkingDirectory: {WorkingDirectory}");
 
-				Console.WriteLine($"WorkingDirectory: {WorkingDirectory}");
+			// Set default WorkingDirectory
+			if (string.IsNullOrEmpty(WorkingDirectory)) WorkingDirectory = ".";
 
-				// Set default WorkingDirectory
-				if (string.IsNullOrEmpty(WorkingDirectory)) WorkingDirectory = ".";
-
-				var rdr = File.OpenRead(Path.Combine(WorkingDirectory, "config.json"));
-				var json = new StreamReader(rdr).ReadToEnd();
-				this.Config = JsonSerializer.Deserialize<Config>(json);
-			}
-			catch (Exception ex)
-			{
-				System.Console.WriteLine($"Error while reading config: {ex.Message}");
-				return false;
-			}
-
-			if (!Directory.Exists(Path.Combine(WorkingDirectory, "themes", Config.Theme)))
-			{
-				System.Console.WriteLine($"Theme folder '{Config.Theme}' does not exist");
-				return false;
-			}
-
-			return true;
-
+			var rdr = File.OpenRead(Path.Combine(WorkingDirectory, "config.json"));
+			var json = new StreamReader(rdr).ReadToEnd();
+			this.Config = JsonSerializer.Deserialize<Config>(json);
 		}
-
-		public abstract bool Validate();
-
-		public virtual int Execute()
+		catch (Exception ex)
 		{
-
-			if (!ValidateConfig()) return 1;
-
-			if (!Validate()) return 1;
-
-			return 0;
-
+			System.Console.WriteLine($"Error while reading config: {ex.Message}");
+			return false;
 		}
+
+		if (!Directory.Exists(Path.Combine(WorkingDirectory, "themes", Config.Theme)))
+		{
+			System.Console.WriteLine($"Theme folder '{Config.Theme}' does not exist");
+			return false;
+		}
+
+		return true;
+
+	}
+
+	public abstract bool Validate();
+
+	public virtual int Execute()
+	{
+
+		if (!ValidateConfig()) return 1;
+
+		if (!Validate()) return 1;
+
+		return 0;
 
 	}
 
 }
+

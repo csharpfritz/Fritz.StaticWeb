@@ -2,10 +2,11 @@
 using System.IO;
 using System.Text.Json;
 using Fritz.StaticBlog;
+using Fritz.StaticBlog.Data;
 
 namespace Test.StaticBlog.GivenLastBuildFile
 {
-	public class BaseFixture : TestSiteBaseFixture, IDisposable 
+    public class BaseFixture : TestSiteBaseFixture, IDisposable 
 	{
 
 		protected ActionBuild _sut { get; private set; }
