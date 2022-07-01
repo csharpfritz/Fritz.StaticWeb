@@ -141,6 +141,8 @@ if (!outValue) System.Console.WriteLine("pages folder is missing");
 			outContent = outContent.Replace("</head>", $"<link rel=\"alternate\" type=\"application/rss+xml\" title=\"{Config.Title}\" href=\"rss.xml\" /></head>");
 		}
 
+		outContent = ApplyMacros(outContent);
+
 		// Load the first 10 articles on the index page
 		Console.WriteLine($"Found {_Posts.Count()} posts to format");
 		var orderedPosts = _Posts.Where(p => !p.Frontmatter.Draft).OrderByDescending(p => p.Frontmatter.PublishDate);
@@ -213,6 +215,7 @@ if (!outValue) System.Console.WriteLine("pages folder is missing");
 
 				string outputHTML = thisLayout.Replace("{{ Body }}", mdHTML);
 				outputHTML = fm.Format(outputHTML);
+				outputHTML = ApplyMacros(outputHTML);
 				outputHTML = Minify(outputHTML);
 
 				File.WriteAllText(fileName, outputHTML);
@@ -388,6 +391,16 @@ if (!outValue) System.Console.WriteLine("pages folder is missing");
 		{
 			File.Copy(item.FullName, Path.Combine(targetFolder.FullName, item.Name), true);
 		}
+
+	}
+
+	private string ApplyMacros(string initialHTML)
+	{
+
+		var outHTML = initialHTML;
+		outHTML = outHTML.Replace("{{ CurrentYear }}", DateTime.Now.Year.ToString());
+
+		return outHTML;
 
 	}
 

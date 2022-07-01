@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Linq;
 using Xunit;
@@ -102,6 +103,21 @@ namespace Test.StaticBlog.GivenValidActionBuild
 			// Assert
 			var firstPost = _sut._Posts.First();
 			Assert.StartsWith("posts/", firstPost.Filename);
+
+		}
+
+		[Fact]
+		public void ShouldApplyMacros()
+		{
+
+			// act
+			_sut.BuildPosts();
+
+			// assert
+			var inspectFile = OutputPostsFolder.GetFiles("*.html").OrderBy(f => f.Name).First();
+			var html = File.ReadAllText(inspectFile.FullName);
+			Assert.DoesNotContain("{{ CurrentYear }}", html);
+			Assert.Contains($"<span>Year: {DateTime.Now.Year}</span>", html);
 
 		}
 
