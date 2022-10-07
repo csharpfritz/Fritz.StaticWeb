@@ -4,7 +4,7 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net6.0</TargetFramework>
 		<ImplicitUsings>true</ImplicitUsings>
-  </PropertyGroup>
+	</PropertyGroup>
 
   <ItemGroup>
     <Compile Remove="dist\**" />

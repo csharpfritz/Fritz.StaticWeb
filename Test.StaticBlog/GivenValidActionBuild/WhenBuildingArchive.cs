@@ -44,4 +44,15 @@ public class WhenBuildingArchive : BaseFixture
 
   }
 
+  [Fact]
+  public void ShouldApplyMacros()
+  {
+
+    var html = File.ReadAllText(_ArchiveFile.FullName);
+    Assert.DoesNotContain("{{ CurrentYear }}", html);
+    Assert.Contains($"<span>Year: {DateTime.Now.Year}</span>", html);
+
+  }
+
+
 }

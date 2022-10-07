@@ -50,6 +50,8 @@ public class ActionBuild : ActionBase, ICommandLineAction
 
 		BuildIndex();
 
+    BuildArchive();
+
 		DeployWwwRoot();
 
 		SaveLastBuild();
@@ -145,9 +147,10 @@ if (!outValue) System.Console.WriteLine("pages folder is missing");
 		{
 
 			var thisPost = orderedPosts.Skip(i).First();
-			sb.AppendLine($"<h2><a href=\"{thisPost.Filename}\">{thisPost.Frontmatter.Title}</a></h2>");
+      sb.AppendLine($"<h2><a href=\"{thisPost.Filename}\">{thisPost.Frontmatter.Title}</a></h2>");
+      sb.AppendLine($"<h4>Written By: {thisPost.Frontmatter.Author}</h4>");
 
-			sb.AppendLine(thisPost.Abstract);
+      sb.AppendLine(thisPost.Abstract);
 
 		}
 
@@ -324,6 +327,7 @@ if (!outValue) System.Console.WriteLine("pages folder is missing");
 
     // Set the title from config
     outContent = outContent.Replace("{{ Title }}", Config.Title);
+    outContent = ApplyMacros(outContent);
 
     var orderedPosts = _Posts.Where(p => !p.Frontmatter.Draft).OrderByDescending(p => p.Frontmatter.PublishDate);
     var sb = new StringBuilder();
