@@ -11,6 +11,9 @@ public class Frontmatter
 	[YamlMember(Alias = "draft")]
 	public bool Draft { get; set; }
 
+  [YamlMember(Alias = "author")]
+  public string Author { get; set; } = string.Empty;
+
 	[YamlMember(Alias = "publishdate")]
 	public DateTime PublishDate { get; set; }
 
@@ -26,6 +29,7 @@ public class Frontmatter
 		var outText = sampleText.Clone().ToString();
 		outText = outText.Replace("{{ PublishDate }}", PublishDate.ToString());
 		outText = outText.Replace("{{ Title }}", Title);
+    outText = outText.Replace("{{ Author }}", Author);
 
 		return outText;
 

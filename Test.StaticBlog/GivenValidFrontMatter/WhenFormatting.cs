@@ -5,27 +5,48 @@ namespace Test.StaticBlog.GivenValidFrontMatter;
 public class WhenFormatting 
 {
 
-	[Fact]
-	public void ShouldReplacePublishDate()
-	{
+  [Fact]
+  public void ShouldReplacePublishDate()
+  {
 
-		var sut = new Frontmatter()
-		{
-			Draft = false,
-			PublishDate = DateTime.Today.AddHours(8).AddMinutes(28),
-			Title = "First Post!"
-		};
+    var sut = new Frontmatter()
+    {
+      Draft = false,
+      PublishDate = DateTime.Today.AddHours(8).AddMinutes(28),
+      Title = "First Post!"
+    };
 
-		var sampleText = "<h5>{{ PublishDate }}</h5>";
+    var sampleText = "<h5>{{ PublishDate }}</h5>";
 
-		var outText = sut.Format(sampleText);
+    var outText = sut.Format(sampleText);
 
-		Assert.DoesNotContain(outText, "PublishDate");
-		Assert.Contains(sut.PublishDate.ToString(), outText);
+    Assert.DoesNotContain(outText, "PublishDate");
+    Assert.Contains(sut.PublishDate.ToString(), outText);
 
-	}
+  }
 
-	[Fact]
+  [Fact]
+  public void ShouldAddAuthor()
+  {
+
+    var sut = new Frontmatter()
+    {
+      Draft = false,
+      PublishDate = DateTime.Today.AddHours(8).AddMinutes(28),
+      Author = "Testy McTestFace",
+      Title = "First Post!"
+    };
+
+    var sampleText = "<h5>{{ PublishDate }} by {{ Author }}</h5>";
+
+    var outText = sut.Format(sampleText);
+
+    Assert.DoesNotContain(outText, "Author");
+    Assert.Contains(sut.Author, outText);
+
+  }
+
+  [Fact]
 	public void ShouldAddImageAndDescriptionInHeader()
 	{
 

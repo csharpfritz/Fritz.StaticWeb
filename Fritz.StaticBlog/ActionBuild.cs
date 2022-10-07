@@ -9,8 +9,8 @@ namespace Fritz.StaticBlog;
 [Verb("build", HelpText = "Build the website")]
 public class ActionBuild : ActionBase, ICommandLineAction
 {
-
-	internal List<PostData> _Posts = new();
+  private const string ArchiveFileName = "archive.html";
+  internal List<PostData> _Posts = new();
 	internal LastBuild _LastBuild;
 
 	[Option('f', "force", Default = (bool)false)]
@@ -303,7 +303,49 @@ if (!outValue) System.Console.WriteLine("pages folder is missing");
 
 	}
 
-	private string Minify(string html)
+  /// <summary>
+  /// Build the archive.html page that contains a list of all posts on the site
+  /// </summary>
+  internal void BuildArchive()
+  {
+
+
+    var layoutInfo = new FileInfo(Path.Combine(WorkingDirectory, "themes", Config.Theme, "layouts", ArchiveFileName));
+    if (!layoutInfo.Exists)
+    {
+      Console.WriteLine("Layout for archive page missing - skipping");
+      return;
+    }
+
+    using var archiveFile = File.CreateText(Path.Combine(WorkingDirectory, OutputPath, ArchiveFileName));
+    using var archiveLayout = File.OpenText(Path.Combine(WorkingDirectory, "themes", Config.Theme, "layouts", ArchiveFileName));
+
+    var outContent = archiveLayout.ReadToEnd();
+
+    // Set the title from config
+    outContent = outContent.Replace("{{ Title }}", Config.Title);
+
+    var orderedPosts = _Posts.Where(p => !p.Frontmatter.Draft).OrderByDescending(p => p.Frontmatter.PublishDate);
+    var sb = new StringBuilder();
+    sb.AppendLine("<ul>");
+    foreach (var thisPost in orderedPosts) 
+    {
+
+      sb.AppendLine($"<li>{thisPost.Frontmatter.PublishDate.ToString("yyyy-M-d")} - <a href=\"{thisPost.Filename}\">{thisPost.Frontmatter.Title}</a></li>");
+
+    }
+    sb.AppendLine("</ul>");
+
+    outContent = outContent.Replace("{{ Body }}", sb.ToString());
+    outContent = Minify(outContent);
+
+    archiveFile.Write(outContent);
+    archiveFile.Close();
+
+
+  }
+
+  private string Minify(string html)
 	{
 
 		if (!MinifyOutput) return html;
@@ -392,9 +434,11 @@ if (!outValue) System.Console.WriteLine("pages folder is missing");
 	{
 
 		var outHTML = initialHTML;
-		outHTML = outHTML.Replace("{{ CurrentYear }}", DateTime.Now.Year.ToString());
+    outHTML = outHTML.Replace("{{ CurrentYear }}", DateTime.Now.Year.ToString());
+    outHTML = outHTML.Replace("{{ ArchiveURL }}", ArchiveFileName);
 
-		return outHTML;
+
+    return outHTML;
 
 	}
 
@@ -403,7 +447,6 @@ if (!outValue) System.Console.WriteLine("pages folder is missing");
 		var outText = JsonSerializer.Serialize(_LastBuild);
 		File.WriteAllText(Path.Combine(WorkingDirectory, LastBuildFilename), outText);
 	}
-
 
 }
 

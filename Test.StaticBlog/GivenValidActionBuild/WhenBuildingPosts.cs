@@ -62,21 +62,36 @@ public class WhenBuildingPosts : BaseFixture {
 
 	}
 
-	[Fact]
-	public void ShouldInsertTitle() {
+  [Fact]
+  public void ShouldInsertTitle()
+  {
 
-		// act
-		_sut.BuildPosts();
+    // act
+    _sut.BuildPosts();
 
-		// assert
-		var inspectFile = OutputPostsFolder.GetFiles("*.html").OrderBy(f => f.Name).First();
-		var html = File.ReadAllText(inspectFile.FullName);
-		Assert.Contains("<title>First post!</title>", html);
+    // assert
+    var inspectFile = OutputPostsFolder.GetFiles("*.html").OrderBy(f => f.Name).First();
+    var html = File.ReadAllText(inspectFile.FullName);
+    Assert.Contains("<title>First post!</title>", html);
 
 
-	}
+  }
 
-	[Fact]
+  [Fact]
+  public void ShouldInsertAuthor()
+  {
+
+    // act
+    _sut.BuildPosts();
+
+    // assert
+    var inspectFile = OutputPostsFolder.GetFiles("*.html").OrderBy(f => f.Name).First();
+    var html = File.ReadAllText(inspectFile.FullName);
+    Assert.Contains("<h3>Author: Testy McTestFace</h3>", html);
+
+  }
+
+  [Fact]
 	public void ShouldAddToPostsForIndex() {
 
 		// act
