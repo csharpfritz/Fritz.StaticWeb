@@ -147,7 +147,7 @@ if (!outValue) System.Console.WriteLine("pages folder is missing");
 		{
 
 			var thisPost = orderedPosts.Skip(i).First();
-      sb.AppendLine($"<h2><a href=\"{thisPost.Filename}\">{thisPost.Frontmatter.Title}</a></h2>");
+      sb.AppendLine($"<h2 class=\"postTitle\"><a href=\"{thisPost.Filename}\">{thisPost.Frontmatter.Title}</a></h2>");
       sb.AppendLine($"<h4>Written By: {thisPost.Frontmatter.Author}</h4>");
 
       sb.AppendLine(thisPost.Abstract);

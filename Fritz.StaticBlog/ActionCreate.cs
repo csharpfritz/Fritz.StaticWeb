@@ -43,7 +43,8 @@ namespace Fritz.StaticBlog
 			{
 				Draft = true,
 				PublishDate = DateTime.Now,
-				Title = Filename
+				Title = Filename,
+        Author = "Author Name"
 			};
 			sb.Append(fm.Serialize());
 
