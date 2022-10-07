@@ -30,7 +30,7 @@ namespace Test.StaticBlog.GivenLastBuildFile
 				}
 			};
 
-			_LastBuildDate = DateTime.Today.AddDays(-5).AddHours(10);
+			_LastBuildDate = DateTime.UtcNow.AddSeconds(-5);
 			var lastBuildFile = File.OpenWrite(Path.Combine(WorkingDirectory.FullName, _sut.LastBuildFilename));
 			JsonSerializer.SerializeAsync<LastBuild>(lastBuildFile, new LastBuild { Timestamp = _LastBuildDate }).GetAwaiter().GetResult();
 			lastBuildFile.Flush();
@@ -40,12 +40,12 @@ namespace Test.StaticBlog.GivenLastBuildFile
  
 		public virtual void Dispose()
 		{
-			
-			File.Delete(Path.Combine(WorkingDirectory.FullName, _sut.LastBuildFilename));
 
-		}
+      File.Delete(Path.Combine(WorkingDirectory.FullName, _sut.LastBuildFilename));
 
-	}	
+    }
+
+  }	
 
 
 }
