@@ -1,6 +1,6 @@
 # Fritz.StaticWeb
 
-A simple static blog generator built to support the KlipTok blog. 
+A simple static blog generator built to support the [KlipTok blog](https://kliptok.com/blog). 
 
 It's built as a command-line tool that can run against a folder of templates and blog posts in markdown format. 
 
