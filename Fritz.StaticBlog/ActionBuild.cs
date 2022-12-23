@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using CommandLine;
 using Markdig;
 using Markdig.Prism;
@@ -149,6 +150,7 @@ if (!outValue) System.Console.WriteLine("pages folder is missing");
 			var thisPost = orderedPosts.Skip(i).First();
       sb.AppendLine($"<h2 class=\"postTitle\"><a href=\"{thisPost.Filename}\">{thisPost.Frontmatter.Title}</a></h2>");
       sb.AppendLine($"<h4>Written By: {thisPost.Frontmatter.Author}</h4>");
+			sb.AppendLine($"<h5>Published: {thisPost.Frontmatter.PublishDate}</h5>");
 
       sb.AppendLine(thisPost.Abstract);
 
@@ -331,14 +333,21 @@ if (!outValue) System.Console.WriteLine("pages folder is missing");
 
     var orderedPosts = _Posts.Where(p => !p.Frontmatter.Draft).OrderByDescending(p => p.Frontmatter.PublishDate);
     var sb = new StringBuilder();
-    sb.AppendLine("<ul>");
-    foreach (var thisPost in orderedPosts) 
-    {
+		var years = orderedPosts.Select(o => o.Frontmatter.PublishDate.Year).Distinct().OrderByDescending(o => o);
 
-      sb.AppendLine($"<li>{thisPost.Frontmatter.PublishDate.ToString("yyyy-M-d")} - <a href=\"{thisPost.Filename}\">{thisPost.Frontmatter.Title}</a></li>");
+		foreach (var thisYear in years) {
 
-    }
-    sb.AppendLine("</ul>");
+			sb.AppendLine($"<h2>{thisYear}</h2>");
+			sb.AppendLine("<ul>");
+			foreach (var thisPost in orderedPosts.Where(o => o.Frontmatter.PublishDate.Year == thisYear)) 
+			{
+
+				sb.AppendLine($"<li>{thisPost.Frontmatter.PublishDate.ToString("yyyy-MM-dd")} - <a href=\"{thisPost.Filename}\">{thisPost.Frontmatter.Title}</a></li>");
+
+			}
+			sb.AppendLine("</ul>");
+
+		}
 
     outContent = outContent.Replace("{{ Body }}", sb.ToString());
     outContent = Minify(outContent);
@@ -438,11 +447,39 @@ if (!outValue) System.Console.WriteLine("pages folder is missing");
 	{
 
 		var outHTML = initialHTML;
+		outHTML = HandleIncludes(outHTML);
     outHTML = outHTML.Replace("{{ CurrentYear }}", DateTime.Now.Year.ToString());
     outHTML = outHTML.Replace("{{ ArchiveURL }}", ArchiveFileName);
 
 
     return outHTML;
+
+	}
+
+	private string HandleIncludes(string outHTML)
+	{
+
+		var includeRegex = new Regex(@"\{\{ Include:([a-zA-Z0-9\-_\.]+) \}\}");
+		var workingHTML = outHTML;
+		var matches = includeRegex.Matches(workingHTML);
+		foreach (Match match in matches)
+		{
+
+			var includeFile = match.Groups[1].Value;
+			var includePath = Path.Combine(WorkingDirectory, "themes", Config.Theme, "includes", $"{includeFile}.html");
+			if (!File.Exists(includePath))
+			{
+				Console.WriteLine($"Include file {includePath} not found - skipping");
+				workingHTML = workingHTML.Replace(match.Value, string.Empty);
+				continue;
+			}
+
+			var includeContent = File.ReadAllText(includePath);
+			workingHTML = workingHTML.Replace(match.Value, includeContent);
+
+		}
+ 
+		return workingHTML;
 
 	}
 
