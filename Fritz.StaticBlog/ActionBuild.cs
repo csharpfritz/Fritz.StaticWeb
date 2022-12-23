@@ -129,9 +129,6 @@ if (!outValue) System.Console.WriteLine("pages folder is missing");
 
 		var outContent = indexLayout.ReadToEnd();
 
-		// Set the title from config
-		outContent = outContent.Replace("{{ Title }}", Config.Title);
-
 		// If Config.Link is set, add a reference to the RSS file
 		if (Config.Link != null)
 		{
@@ -139,6 +136,9 @@ if (!outValue) System.Console.WriteLine("pages folder is missing");
 		}
 
 		outContent = ApplyMacros(outContent);
+
+		// Set the title from config
+		outContent = outContent.Replace("{{ Title }}", Config.Title);
 
 		// Load the first 10 articles on the index page
 		Console.WriteLine($"Found {_Posts.Count()} posts to format");
@@ -213,8 +213,8 @@ if (!outValue) System.Console.WriteLine("pages folder is missing");
 			{
 
 				string outputHTML = thisLayout.Replace("{{ Body }}", mdHTML);
-				outputHTML = fm.Format(outputHTML);
 				outputHTML = ApplyMacros(outputHTML);
+				outputHTML = fm.Format(outputHTML);
 				outputHTML = Minify(outputHTML);
 
 				File.WriteAllText(fileName, outputHTML);
@@ -328,8 +328,8 @@ if (!outValue) System.Console.WriteLine("pages folder is missing");
     var outContent = archiveLayout.ReadToEnd();
 
     // Set the title from config
-    outContent = outContent.Replace("{{ Title }}", Config.Title);
     outContent = ApplyMacros(outContent);
+    outContent = outContent.Replace("{{ Title }}", Config.Title);
 
     var orderedPosts = _Posts.Where(p => !p.Frontmatter.Draft).OrderByDescending(p => p.Frontmatter.PublishDate);
     var sb = new StringBuilder();
