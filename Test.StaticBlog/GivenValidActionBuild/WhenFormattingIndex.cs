@@ -69,5 +69,33 @@ namespace Test.StaticBlog.GivenValidActionBuild
 
 		}
 
+		[Fact]
+		public void ShouldEvaluateIncludes()
+		{
+
+			// Index wasnt created, don't process
+			if (Fixture._IndexFile == null) return;
+
+			var contents = File.OpenText(Fixture._IndexFile.FullName).ReadToEnd();
+
+			// Check for included material 
+			Assert.Contains("This is an include", contents);
+
+		}
+
+		[Fact]
+		public void ShouldEvaluateMacrosInsideIncludes()
+		{
+
+			// Index wasnt created, don't process
+			if (Fixture._IndexFile == null) return;
+
+			var contents = File.OpenText(Fixture._IndexFile.FullName).ReadToEnd();
+
+			// Check for included material   
+			Assert.Contains("This is the current year: " + DateTime.UtcNow.Year, contents);
+
+		}
+
 	}
 }

@@ -18,10 +18,10 @@ public abstract class BaseFixture
 				"../../../../TestSite";
 
 
-		string targetFolderName = GetType().Name.ToLowerInvariant();
+		string targetFolderName = GetType().Name.ToLowerInvariant(); 
 		_sut = new ActionBuild
 		{
-			Force = false,
+			Force = true,
 			OutputPath = targetFolderName,
 			ThisDirectory = workingDirectory,
 			Config = new Config
