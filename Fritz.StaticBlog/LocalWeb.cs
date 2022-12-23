@@ -7,6 +7,8 @@ public static class LocalWeb
   public static void StartAdminWeb(string[] args)
   {
 
+		System.Console.WriteLine("Starting Admin Web");
+
     var builder = WebApplication.CreateBuilder(new WebApplicationOptions
     {
       EnvironmentName = Environments.Production
@@ -15,15 +17,21 @@ public static class LocalWeb
     builder.WebHost.UseUrls(new[] { "http://localhost:8028", "http://localhost:8029" });
     builder.Logging.ClearProviders();
 
+		builder.Services.AddRazorPages();
+
     var app = builder.Build();
 
     app.MapAdminSite();
+
+		app.MapRazorPages();
+
+		System.Console.WriteLine("Admin Web Configured");
 
     app.Run();
 
   }
 
-  public static IApplicationBuilder MapAdminSite(this IApplicationBuilder app)
+  public static IApplicationBuilder MapAdminSite(this WebApplication app)
   {
 
     app.MapWhen(ctx => ctx.Connection.LocalPort == 8028, config =>
