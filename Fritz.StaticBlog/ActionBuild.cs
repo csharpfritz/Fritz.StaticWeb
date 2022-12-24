@@ -132,7 +132,7 @@ if (!outValue) System.Console.WriteLine("pages folder is missing");
 		// If Config.Link is set, add a reference to the RSS file
 		if (Config.Link != null)
 		{
-			outContent = outContent.Replace("</head>", $"<link rel=\"alternate\" type=\"application/rss+xml\" title=\"{Config.Title}\" href=\"rss.xml\" /></head>");
+			outContent = outContent.Replace("</head>", $"""<link rel="alternate" type="application/rss+xml" title="{Config.Title}" href="rss.xml" /></head>""");
 		}
 
 		outContent = ApplyMacros(outContent);
@@ -148,7 +148,7 @@ if (!outValue) System.Console.WriteLine("pages folder is missing");
 		{
 
 			var thisPost = orderedPosts.Skip(i).First();
-      sb.AppendLine($"<h2 class=\"postTitle\"><a href=\"{thisPost.Filename}\">{thisPost.Frontmatter.Title}</a></h2>");
+      sb.AppendLine($"""<h2 class="postTitle"><a href="{thisPost.Filename}">{thisPost.Frontmatter.Title}</a></h2>""");
       sb.AppendLine($"<h4>Written By: {thisPost.Frontmatter.Author}</h4>");
 			sb.AppendLine($"<h5>Published: {thisPost.Frontmatter.PublishDate}</h5>");
 
@@ -205,7 +205,7 @@ if (!outValue) System.Console.WriteLine("pages folder is missing");
 			var doc = Markdig.Markdown.Parse(txt, pipeline);
 			var fm = txt.GetFrontMatter<Frontmatter>();
 
-			var thisLayout = InsertHeadContent(fm, layoutText);
+			var thisLayout = InsertHeadContent(fm, layoutText, Config);
 
 			var mdHTML = Markdig.Markdown.ToHtml(doc, pipeline);
 
@@ -234,7 +234,7 @@ if (!outValue) System.Console.WriteLine("pages folder is missing");
 
 	}
 
-	internal string InsertHeadContent(Frontmatter fm, string layout) 
+	internal static string InsertHeadContent(Frontmatter fm, string layout, Config config) 
 	{
 
 		var workingText = layout;
@@ -244,7 +244,7 @@ if (!outValue) System.Console.WriteLine("pages folder is missing");
         <meta property="og:description" content="{fm.Description}">
         <meta property="og:image" content="{fm.Preview}">
         <meta property="og:type" content="website">
-        <meta property="fb:app_id" content="{Config.FacebookId}">
+        <meta property="fb:app_id" content="{config.FacebookId}">
       </head>
       """;
 
