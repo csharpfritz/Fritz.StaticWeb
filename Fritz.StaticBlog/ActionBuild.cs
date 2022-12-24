@@ -239,23 +239,27 @@ if (!outValue) System.Console.WriteLine("pages folder is missing");
 
 		var workingText = layout;
 
-		var ogHeaders = $"<meta property=\"og:title\" content=\"{fm.Title}\">\n" +
-			$"<meta property=\"og:description\" content=\"{fm.Description}\" >\n" +
-			$"<meta property=\"og:image\" content=\"{fm.Preview}\">" +
-			"<meta property=\"og:type\" content=\"website\">" +
-			$"<meta property=\"fb:app_id\" content=\"{Config.FacebookId}\">" +
-			"</head>";
+		var ogHeaders = $"""
+        <meta property="og:title" content="{fm.Title}">
+        <meta property="og:description" content="{fm.Description}">
+        <meta property="og:image" content="{fm.Preview}">
+        <meta property="og:type" content="website">
+        <meta property="fb:app_id" content="{Config.FacebookId}">
+      </head>
+      """;
+
 		//$"< meta property = "og:url" content = "https://kliptok.com/@Model.Channel.DisplayName.ToLowerInvariant()" >
 		//< meta property = "og:site_name" content = "KlipTok - Social Media Fun for Twitch Clips" >
 
 		workingText = workingText.Replace("</head>", ogHeaders, StringComparison.InvariantCultureIgnoreCase);
 
-		var twitterHeaders = $"\t<meta name=\"twitter:card\" content=\"summary_large_image\">\r\n\t" +
-			// $"<meta name=\"twitter:site\" content=\"@@thekliptok\">\r\n\t" +
-			$"<meta name=\"twitter:title\" content=\"{fm.Title}\">\r\n\t" +
-			$"<meta name=\"twitter:description\" content=\"{fm.Description}\">\r\n\t" +
-			$"<meta name=\"twitter:image\" content=\"{fm.Preview}\">\r\n" +
-			"</head>";
+		var twitterHeaders = $"""
+        <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:title" content="{fm.Title}">
+        <meta name="twitter:description" content="{fm.Description}">
+        <meta name="twitter:image" content="{fm.Preview}">
+      </head>
+    """;
 
 
 		workingText = workingText.Replace("</head>", twitterHeaders, StringComparison.InvariantCultureIgnoreCase);
@@ -273,8 +277,24 @@ if (!outValue) System.Console.WriteLine("pages folder is missing");
 			return;
 		}
 
-		var rssHeader = $"<rss version=\"2.0\">\n<channel>\n<title>{Config.Title}</title>\n<link>{Config.Link}</link>\n<description>{Config.Description}</description>\n<language>en-us</language>\n<lastBuildDate>{DateTime.UtcNow.ToString("r")}</lastBuildDate>\n<ttl>60</ttl>\n<copyright>Copyright {DateTime.UtcNow.Year} {Config.Owner}</copyright>\n";
-		var rssHeader2 = $"<managingEditor>{Config.EditorEmail}</managingEditor>\n<webMaster>{Config.WebmasterEmail}</webMaster>\n<pubDate>{DateTime.UtcNow.ToString("r")}</pubDate>\n<docs>http://blogs.law.harvard.edu/tech/rss</docs>\n<generator>Fritz.StaticWeb</generator>\n";
+		var rssHeader = $"""
+      <rss version="2.0">
+        <channel>
+          <title>{Config.Title}</title>
+          <link>{Config.Link}</link>
+          <description>{Config.Description}</description>
+          <language>en-us</language>
+          <lastBuildDate>{DateTime.UtcNow.ToString("r")}</lastBuildDate>
+          <ttl>60</ttl>
+          <copyright>Copyright {DateTime.UtcNow.Year} {Config.Owner}</copyright>
+      """;
+		var rssHeader2 = $"""
+      <managingEditor>{Config.EditorEmail}</managingEditor>
+      <webMaster>{Config.WebmasterEmail}</webMaster>
+      <pubDate>{DateTime.UtcNow.ToString("r")}</pubDate>
+      <docs>http://blogs.law.harvard.edu/tech/rss</docs>
+      <generator>Fritz.StaticWeb</generator>
+    """;
 
 		var rssItems = new List<string>();
 		foreach (var post in _Posts.Where(p => !p.Frontmatter.Draft).OrderByDescending(p => p.Frontmatter.PublishDate))
@@ -283,7 +303,15 @@ if (!outValue) System.Console.WriteLine("pages folder is missing");
 			var posH2 = post.Abstract.IndexOf("<h2");
 			posH2 = posH2 < 0 ? post.Abstract.Length : posH2;
 			var postAbstract = post.Abstract.Substring(0, posH2).Trim();
-			var rssItem = $"<item>\n<title>{post.Frontmatter.Title}</title>\n<link>{Config.Link}/posts/{post.Filename}</link>\n<description>{postAbstract}</description>\n<pubDate>{post.Frontmatter.PublishDate.ToString("r")}</pubDate>\n<guid>{Config.Link}/posts/{post.Filename}</guid>\n</item>\n";
+			var rssItem = $"""
+        <item>
+          <title>{post.Frontmatter.Title}</title>
+          <link>{Config.Link}/posts/{post.Filename}</link>
+          <description>{postAbstract}</description>
+          <pubDate>{post.Frontmatter.PublishDate.ToString("r")}</pubDate>
+          <guid>{Config.Link}/posts/{post.Filename}</guid>
+        </item>
+      """;
 			rssItems.Add(rssItem);
 
 		}

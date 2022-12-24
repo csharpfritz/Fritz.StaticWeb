@@ -74,13 +74,6 @@ public static class LocalWeb
 
       });
 
-      //config.MapWhen(ctx => ctx.Request.Path == "/", c => c.Run(x =>
-      //{
-      //  x.Response.Redirect("/index.html");
-      //  return Task.CompletedTask;
-      //}));
-
-      //config.UseDefaultFiles();
 
     });
 
