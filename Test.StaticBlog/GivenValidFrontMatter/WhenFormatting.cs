@@ -72,7 +72,7 @@ public class WhenFormatting
 			}
 		};
 
-		var outText = sut.InsertHeadContent(fm, sampleLayout);
+		var outText = ActionBuild.InsertHeadContent(fm, sampleLayout, sut.Config);
 
 		Assert.Contains(fm.Preview, outText);
 
