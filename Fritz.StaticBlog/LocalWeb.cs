@@ -61,21 +61,40 @@ public static class LocalWeb
     app.MapWhen(ctx => ctx.Connection.LocalPort == 8029, config =>
     {
 
+			var baseFolder = "/home/csharpfritz/dev/KlipTok.Blog";
+
+			config.UseStaticFiles(new StaticFileOptions {
+				RequestPath = "/blog",
+				FileProvider = new PhysicalFileProvider(Path.Combine(baseFolder, "dist"))
+
+			});
+
       config.Map("/blog/posts", mapConfig =>
       {
 
-				var baseFolder = "/home/csharpfritz/dev/KlipTok.Blog";
+				mapConfig.UseStaticFiles(new StaticFileOptions
+				{
+					RequestPath = "/blog/posts",
+					FileProvider = new PhysicalFileProvider(Path.Combine(baseFolder, "posts"))
+				});
+
 				var postLayout = File.ReadAllText(Path.Combine(baseFolder, "themes", "kliptok", "layouts", "posts.html"));
 
         mapConfig.Run(async ctx =>
         {
 
-					var post = new FileInfo(Path.Combine(baseFolder, "posts", "8-CategoriesAndTeams.md"));
+					System.Console.WriteLine($"Request Path: {ctx.Request.Path}");
+
+					if (string.IsNullOrEmpty(ctx.Request.Path)) throw new FileNotFoundException("Post not found");
+					if (ctx.Request.Path.Value.EndsWith(".html")) throw new FileNotFoundException("Post not found");
+
+					var post = new FileInfo(Path.Combine(baseFolder, "posts", ctx.Request.Path.Value.Substring(1)));
+					if (!post.Exists) throw new FileNotFoundException($"Post not found {post.FullName}");
 
 					var result = ActionBuild.BuildPost(post, postLayout, new Config { Theme="kliptok" }, baseFolder);
 
           ctx.Response.ContentType = "text/html";
-          await ctx.Response.WriteAsync(result.postHTML);
+          await ctx.Response.WriteAsync(result.fullHTML);
 
         });
 
