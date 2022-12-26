@@ -61,14 +61,21 @@ public static class LocalWeb
     app.MapWhen(ctx => ctx.Connection.LocalPort == 8029, config =>
     {
 
-      config.Map("", mapConfig =>
+      config.Map("/blog/posts", mapConfig =>
       {
+
+				var baseFolder = "/home/csharpfritz/dev/KlipTok.Blog";
+				var postLayout = File.ReadAllText(Path.Combine(baseFolder, "themes", "kliptok", "layouts", "posts.html"));
 
         mapConfig.Run(async ctx =>
         {
 
+					var post = new FileInfo(Path.Combine(baseFolder, "posts", "8-CategoriesAndTeams.md"));
+
+					var result = ActionBuild.BuildPost(post, postLayout, new Config { Theme="kliptok" }, baseFolder);
+
           ctx.Response.ContentType = "text/html";
-          await ctx.Response.WriteAsync("<h2>This is the way</h2>");
+          await ctx.Response.WriteAsync(result.postHTML);
 
         });
 
