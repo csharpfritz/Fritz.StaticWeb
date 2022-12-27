@@ -1,12 +1,18 @@
 ﻿using Fritz.StaticBlog.Data;
 using Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation;
 using Microsoft.Extensions.FileProviders;
+using System.Diagnostics;
 
 public static class LocalWeb
 {
+  public const string PARM_RUNASYNC = "runasync";
+  static bool isRunning = false;
+  static WebApplication app;
 
-  public static void StartAdminWeb(string[] args)
+  public static async Task StartAdminWeb(params string[] args)
   {
+
+    if (isRunning) return;
 
     System.Console.WriteLine("Starting Admin Web");
 
@@ -36,7 +42,7 @@ public static class LocalWeb
     .AddRazorRuntimeCompilation()
     .AddApplicationPart(typeof(LocalWeb).Assembly);
 
-    var app = builder.Build();
+    app = builder.Build();
 
     app.UseDeveloperExceptionPage();
     app.UseRouting();
@@ -46,52 +52,75 @@ public static class LocalWeb
       FileProvider = new ManifestEmbeddedFileProvider(typeof(LocalWeb).Assembly, "adminweb")
     });
 
-    app.MapAdminSite();
+    app.MapAdminSite(app.Services);
     app.MapRazorPages();
 
     System.Console.WriteLine("Admin Web Configured.  Navigate to http://localhost:8028 to get started");
 
-    app.Run();
+    isRunning = true;
+
+    if (args.Contains(PARM_RUNASYNC))
+    {
+      await app.StartAsync();
+    }
+    else
+    {
+      app.Run();
+      isRunning = false;
+    }
+
 
   }
 
-  public static IApplicationBuilder MapAdminSite(this WebApplication app)
+  public static async Task Stop()
+  {
+
+    await app.StopAsync();
+    isRunning = false;
+
+  }
+
+  public static IApplicationBuilder MapAdminSite(this WebApplication app, IServiceProvider services)
   {
 
     app.MapWhen(ctx => ctx.Connection.LocalPort == 8029, config =>
     {
 
-			var baseFolder = "/home/csharpfritz/dev/KlipTok.Blog";
+      var siteConfig = services.GetRequiredService<WebsiteConfig>();
 
-			config.UseStaticFiles(new StaticFileOptions {
-				RequestPath = "/blog",
-				FileProvider = new PhysicalFileProvider(Path.Combine(baseFolder, "dist"))
+      var baseFolder = siteConfig.WorkingDirectory; //"""c:\dev\KlipTok.Blog""";
+      //var baseFolder = "/home/csharpfritz/dev/KlipTok.Blog";
 
-			});
+      config.UseStaticFiles(new StaticFileOptions
+      {
+        RequestPath = "/blog",
+        FileProvider = new PhysicalFileProvider(Path.Combine(baseFolder, "dist"))
+
+      });
 
       config.Map("/blog/posts", mapConfig =>
       {
 
-				mapConfig.UseStaticFiles(new StaticFileOptions
-				{
-					RequestPath = "/blog/posts",
-					FileProvider = new PhysicalFileProvider(Path.Combine(baseFolder, "posts"))
-				});
+        mapConfig.UseStaticFiles(new StaticFileOptions
+        {
+          RequestPath = "/blog/posts",
+          FileProvider = new PhysicalFileProvider(Path.Combine(baseFolder, "posts"))
+        });
 
-				var postLayout = File.ReadAllText(Path.Combine(baseFolder, "themes", "kliptok", "layouts", "posts.html"));
+        var postLayout = File.ReadAllText(Path.Combine(baseFolder, "themes", "kliptok", "layouts", "posts.html"));
 
         mapConfig.Run(async ctx =>
         {
 
-					System.Console.WriteLine($"Request Path: {ctx.Request.Path}");
+          System.Console.WriteLine($"Request Path: {ctx.Request.Path}");
 
-					if (string.IsNullOrEmpty(ctx.Request.Path)) throw new FileNotFoundException("Post not found");
-					if (ctx.Request.Path.Value.EndsWith(".html")) throw new FileNotFoundException("Post not found");
+          if (string.IsNullOrEmpty(ctx.Request.Path)) throw new FileNotFoundException("Post not found");
+          if (ctx.Request.Path.Value.EndsWith(".html")) throw new FileNotFoundException("Post not found");
 
-					var post = new FileInfo(Path.Combine(baseFolder, "posts", ctx.Request.Path.Value.Substring(1)));
-					if (!post.Exists) throw new FileNotFoundException($"Post not found {post.FullName}");
+          var post = new FileInfo(Path.Combine(baseFolder, "posts", ctx.Request.Path.Value.Substring(1)));
+          if (!post.Exists) throw new FileNotFoundException($"Post not found {post.FullName}");
 
-					var result = ActionBuild.BuildPost(post, postLayout, new Config { Theme="kliptok" }, baseFolder);
+          var result = ActionBuild.BuildPost(post, postLayout, new Config { Theme = "kliptok" }, baseFolder);
 
           ctx.Response.ContentType = "text/html";
           await ctx.Response.WriteAsync(result.fullHTML);
@@ -105,6 +134,10 @@ public static class LocalWeb
 
     return app;
 
+  }
+
+  public static WebsiteConfig WebsiteConfig { 
+    get { return app.Services.GetRequiredService<WebsiteConfig>();  }
   }
 
 }
