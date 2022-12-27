@@ -14,7 +14,7 @@ public class ActionBuild : ActionBase, ICommandLineAction
 	internal List<PostData> _Posts = new();
 	internal LastBuild _LastBuild;
 
-	private static MarkdownPipeline pipeline = new MarkdownPipelineBuilder()
+	public static MarkdownPipeline pipeline = new MarkdownPipelineBuilder()
 		.UseAdvancedExtensions()
 		.UseYamlFrontMatter()
 		.UsePrism()
@@ -223,17 +223,29 @@ if (!outValue) System.Console.WriteLine("pages folder is missing");
 
 	}
 
-	internal static (string fullHTML, string postHTML, Frontmatter fm) 
+	internal static (string fullHTML, string postHTML, Frontmatter fm)
 		BuildPost(
-			FileInfo postFile, 
-			string layoutText, 
-			Config config, 
+			FileInfo postFile,
+			string layoutText,
+			Config config,
 			string workingDirectory)
 	{
 
 		var txt = File.ReadAllText(postFile.FullName, Encoding.UTF8);
-		var doc = Markdig.Markdown.Parse(txt, pipeline);
-		var fm = txt.GetFrontMatter<Frontmatter>();
+		return BuildPost(txt, layoutText, config, workingDirectory);
+
+	}
+
+	internal static (string fullHTML, string postHTML, Frontmatter fm)
+		BuildPost(
+			string mdContents,
+			string layoutText,
+			Config config,
+			string workingDirectory)
+	{
+
+		var doc = Markdig.Markdown.Parse(mdContents, pipeline);
+		var fm = mdContents.GetFrontMatter<Frontmatter>();
 
 		var thisLayout = InsertHeadContent(fm, layoutText, config);
 
@@ -241,7 +253,7 @@ if (!outValue) System.Console.WriteLine("pages folder is missing");
 
 		string outputHTML = thisLayout.Replace("{{ Body }}", mdHTML);
 		outputHTML = ApplyMacros(outputHTML, workingDirectory, config);
-		outputHTML = fm.Format(outputHTML);
+		outputHTML = fm?.Format(outputHTML) ?? outputHTML;
 
 		return (outputHTML, mdHTML, fm);
 
@@ -251,6 +263,8 @@ if (!outValue) System.Console.WriteLine("pages folder is missing");
 	{
 
 		var workingText = layout;
+
+		if (fm == null) return workingText;
 
 		var ogHeaders = $"""
         <meta property="og:title" content="{fm.Title}">

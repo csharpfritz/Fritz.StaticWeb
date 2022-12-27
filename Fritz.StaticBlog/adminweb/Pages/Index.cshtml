@@ -1,15 +1,40 @@
 ﻿@page
 @model Fritz.StaticBlog.adminweb.Pages.IndexModel
-<html>
-  <head>
-    <title>Website Administration and Management</title>
-  </head>
-  <body>
-    This is the beginning
-  </body>
-</html>
-@{
+@using Fritz.StaticBlog.Data
+<h1>Website Administration and Management</h1>
 
+@if (!string.IsNullOrEmpty(Model.ErrorMessage))
+{
+  <div class="alert alert-danger">
+    @Model.ErrorMessage
+  </div>
+}
+
+@if (@Model._Configuration[WebsiteConfig.PARM_OUTPUTPATH] == AppContext.BaseDirectory)
+{
+  <p>
+    <strong>WARNING: The output path is not set.  Please set the output path in the configuration.</strong>
+  </p>
+
+  <form action="/" method="post">
+    <label for="WorkingFolder">Website Working Folder:</label>
+    @Html.TextBoxFor(m => m.WorkingFolder)
+
+    <input type="submit" value="Try it" />
+  </form>
+
+}
+else
+{
+
+  <dl>
+    <dt>OutputPath</dt>
+    <dd>@Model._Configuration[WebsiteConfig.PARM_OUTPUTPATH]</dd>
+    <dt>Theme</dt>
+    <dd>@Model._Configuration[WebsiteConfig.PARM_THEME]</dd>
+    <dt>WorkingDirectory</dt>
+    <dd>@Model._Configuration[WebsiteConfig.PARM_WORKINGDIRECTORY]</dd>
+  </dl>
 
 
 }

@@ -1,0 +1,67 @@
+﻿@page
+@model Fritz.StaticBlog.adminweb.Pages.EditPostModel
+
+<div class="row vh-100">
+	<div class="col-md-6">
+
+		<textarea id="editor"></textarea>
+
+		<fieldset class="form-group">
+			<legend>Frontmatter for the post</legend>
+			<label for="Title">Title</label>
+			<input type="text" class="form-control" id="Title" placeholder="Enter Title" onchange="LiveReload()">
+			<label for="Author">Author</label>
+			<input type="text" class="form-control" id="Author" placeholder="Enter Author" onchange="LiveReload()">
+			<label for="Title">Publish Date</label>
+			<input type="datetime-local" class="form-control" id="PublishDate" placeholder="Enter PublishDate" onchange="LiveReload()" value="@DateTime.Now.ToString("yyy-MM-ddTHH:mm")">
+		</fieldset>
+
+	</div>
+	<iframe class="col-md-6" id="previewFrame">
+	</iframe>
+</div>
+
+
+@section head {
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.css">
+}
+
+@section scripts {
+	<script src="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.js"></script>
+	<script>
+		var simplemde = new SimpleMDE({ element: document.getElementById("editor") });
+		var changeThrottle;
+		simplemde.codemirror.on("change", LiveReload);
+
+		function LiveReload() {
+
+			clearTimeout(changeThrottle);
+			changeThrottle = window.setTimeout(x => {
+				let formData = new FormData();
+				formData.append('post', FormatFrontmatter() + simplemde.value());
+				fetch("http://localhost:8029/previewpost", {
+					method: 'POST',
+					body: formData
+				}).then(response => response.text())
+					.then(text => {
+
+						var doc = document.getElementById('previewFrame').contentWindow.document;
+						doc.open();
+						doc.write(text);
+						doc.close();
+
+					});
+			}, 300);
+
+		}
+
+		function FormatFrontmatter() {
+			return `---
+title: ${document.getElementById('Title').value}
+author: ${document.getElementById('Author').value}
+publishdate: ${document.getElementById('PublishDate').value}
+---
+`;
+		}
+	</script>
+}

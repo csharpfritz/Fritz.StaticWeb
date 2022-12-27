@@ -1,0 +1,63 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+	<title>Website Administration and Management</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
+	@RenderSection("head", false)
+	<style>
+		#body {
+				box-shadow: inset 0 0.5em 1.5em rgb(0 0 0 / 10%), 
+					inset 0 0.125em 0.5em rgb(0 0 0 / 15%);
+				height: 100vh;
+		}
+	</style>
+</head>
+<body>
+
+
+	@*  <aside>
+	<nav class="nav flex-column navbar-light bg-white border-bottom box-shadow">
+	<a class="nav-link text-dark" asp-area="" asp-page="/Index">Home</a>
+	<a class="nav-link text-dark" asp-area="" asp-page="/Posts">Posts</a>
+	<a class="nav-link text-dark" asp-area="" asp-page="/Settings">Settings</a>
+	</nav>
+	</aside>
+	*@
+	<main class="d-flex flex-nowrap">
+
+		<div class="d-flex flex-column flex-shrink-0 bg-light" style="width: 6rem;">
+			<a href="/" class="d-block p-3 link-dark text-decoration-none" title="Icon-only" data-bs-toggle="tooltip" data-bs-placement="right">
+				Website Admin
+				@*<span class="visually-hidden">Icon-only</span>*@
+			</a>
+			<ul class="nav nav-pills nav-flush flex-column mb-auto text-center">
+				<li class="nav-item">
+					<a asp-page="/Index" class="nav-link active py-3 border-bottom rounded-0" aria-current="page" title="Home" data-bs-toggle="tooltip" data-bs-placement="right">
+						Home
+					</a>
+				</li>
+				<li class="nav-item">
+					<a asp-page="/Posts" class="nav-link active py-3 border-bottom rounded-0" aria-current="page" title="Home" data-bs-toggle="tooltip" data-bs-placement="right">
+						Posts
+					</a>
+				</li>
+				<li class="nav-item">
+					<a asp-page="/Settings" class="nav-link active py-3 border-bottom rounded-0" aria-current="page" title="Home" data-bs-toggle="tooltip" data-bs-placement="right">
+						Settings
+					</a>
+				</li>
+			</ul>
+		</div>
+
+		<div class="container-fluid" id="body">
+			@RenderBody()
+		</div>
+
+	</main>
+
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js" integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN" crossorigin="anonymous"></script>
+	@RenderSection("scripts", false)
+</body>
+</html>

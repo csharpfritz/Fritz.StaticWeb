@@ -18,27 +18,18 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Remove="adminweb\_index.html" />
-  </ItemGroup>
-
-  <ItemGroup>
     <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
       <_Parameter1>Test.StaticBlog</_Parameter1>
     </AssemblyAttribute>
     <EmbeddedResource Include="adminweb\*" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Compile Remove="adminweb\index.cshtml.cs" />
-  </ItemGroup>
+  <!--<ItemGroup>
+    <Compile Include="adminweb\**\*.cs" />
+  </ItemGroup>-->
 
   <ItemGroup>
-    <Content Remove="adminweb\index.cshtml" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Include="adminweb\Pages\Index.cshtml" />
-    <EmbeddedResource Include="adminweb\Pages\Index.cshtml.cs" />
+    <EmbeddedResource Include="adminweb\Pages\**\*" />
   </ItemGroup>
 
   <ItemGroup>
@@ -49,10 +40,6 @@
     <PackageReference Include="NUglify" Version="1.20.2" />
     <PackageReference Include="WebStoating.Markdig.Prism" Version="1.0.0" />
     <PackageReference Include="YamlDotNet" Version="12.0.2" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="adminweb\Pages\Shared\" />
   </ItemGroup>
 
 </Project>

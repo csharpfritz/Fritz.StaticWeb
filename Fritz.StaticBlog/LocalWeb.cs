@@ -1,110 +1,201 @@
 ﻿using Fritz.StaticBlog.Data;
+using Fritz.StaticBlog.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation;
 using Microsoft.Extensions.FileProviders;
+using System.Diagnostics;
 
 public static class LocalWeb
 {
+	public const string PARM_RUNASYNC = "runasync";
+	static bool isRunning = false;
+	static WebApplication app;
 
-  public static void StartAdminWeb(string[] args)
-  {
+	public static async Task StartAdminWeb(params string[] args)
+	{
 
-    System.Console.WriteLine("Starting Admin Web");
+		if (isRunning) return;
 
-    var builder = WebApplication.CreateBuilder(new WebApplicationOptions
-    {
-      EnvironmentName = Environments.Production
-    });
+		System.Console.WriteLine("Starting Admin Web");
 
-    builder.Services.AddSingleton<WebsiteConfig>();
-    builder.Services.AddSingleton<IFileProvider>(new EmbeddedFileProvider(typeof(LocalWeb).Assembly, "Fritz.StaticBlog.adminweb.Pages"));
+		var builder = WebApplication.CreateBuilder(new WebApplicationOptions
+		{
+			EnvironmentName = Environments.Production
+		});
 
-    builder.Services.Configure<MvcRazorRuntimeCompilationOptions>(options =>
-    {
-      options.FileProviders.Clear();
-      options.FileProviders.Add(new EmbeddedFileProvider(typeof(LocalWeb).Assembly, "Fritz.StaticBlog.adminweb.Pages"));
-    });
+		//builder.Services.AddSingleton<WebsiteConfig>(_Config ?? new WebsiteConfig());
+		builder.Configuration.AddInMemoryCollection(_Config ?? new WebsiteConfig());
+		builder.Services.AddSingleton<IFileProvider>(new EmbeddedFileProvider(typeof(LocalWeb).Assembly, "Fritz.StaticBlog.adminweb.Pages"));
 
-    builder.WebHost.UseUrls(new[] { "http://localhost:8028", "http://localhost:8029" });
-    builder.Logging.ClearProviders();
-    builder.Logging.AddConsole();
-    builder.Logging.SetMinimumLevel(LogLevel.Trace);
+		builder.Services.Configure<MvcRazorRuntimeCompilationOptions>(options =>
+		{
+			options.FileProviders.Clear();
+			options.FileProviders.Add(new EmbeddedFileProvider(typeof(LocalWeb).Assembly, "Fritz.StaticBlog.adminweb.Pages"));
+		});
 
-    builder.Services.AddRazorPages(config =>
-    {
-      config.RootDirectory = "/";
-    })
-    .AddRazorRuntimeCompilation()
-    .AddApplicationPart(typeof(LocalWeb).Assembly);
+		builder.WebHost.UseUrls(new[] { "http://localhost:8028", "http://localhost:8029" });
+		builder.Logging.ClearProviders();
+		builder.Logging.AddConsole();
+		builder.Logging.SetMinimumLevel(LogLevel.Trace);
 
-    var app = builder.Build();
+		builder.Services.AddRazorPages(config =>
+		{
+			config.RootDirectory = "/";
+		})
+		.AddRazorRuntimeCompilation()
+		.AddApplicationPart(typeof(LocalWeb).Assembly);
 
-    app.UseDeveloperExceptionPage();
-    app.UseRouting();
+		builder.Services.AddCors();
 
-    app.UseStaticFiles(new StaticFileOptions
-    {
-      FileProvider = new ManifestEmbeddedFileProvider(typeof(LocalWeb).Assembly, "adminweb")
-    });
+		app = builder.Build();
 
-    app.MapAdminSite();
-    app.MapRazorPages();
+		await StartWebServer(args);
 
-    System.Console.WriteLine("Admin Web Configured.  Navigate to http://localhost:8028 to get started");
+	}
 
-    app.Run();
+	public static async Task StartWebServer(params string[] args)
+	{
+		app.UseDeveloperExceptionPage();
+		app.UseRouting();
 
-  }
+		app.UseStaticFiles(new StaticFileOptions
+		{
+			FileProvider = new ManifestEmbeddedFileProvider(typeof(LocalWeb).Assembly, "adminweb")
+		});
 
-  public static IApplicationBuilder MapAdminSite(this WebApplication app)
-  {
+		app.UseCors(config =>
+		{
+			config.SetIsOriginAllowed(h => h.Contains("localhost"));
+			config.AllowAnyMethod();
+			config.AllowAnyHeader();
+		});
 
-    app.MapWhen(ctx => ctx.Connection.LocalPort == 8029, config =>
-    {
+		app.MapAdminSite(app.Services);
+		app.MapRazorPages();
 
-			var baseFolder = "/home/csharpfritz/dev/KlipTok.Blog";
+		System.Console.WriteLine("Admin Web Configured.  Navigate to http://localhost:8028 to get started");
 
-			config.UseStaticFiles(new StaticFileOptions {
-				RequestPath = "/blog",
-				FileProvider = new PhysicalFileProvider(Path.Combine(baseFolder, "dist"))
+		isRunning = true;
+
+		if (args.Contains(PARM_RUNASYNC))
+		{
+			await app.StartAsync();
+		}
+		else
+		{
+			var ps = new ProcessStartInfo("http://localhost:8028")
+			{
+				UseShellExecute = true,
+				Verb = "open"
+			};
+			Process.Start(ps);
+			app.Run();
+			isRunning = false;
+		}
+	}
+
+	public static async Task Stop()
+	{
+
+		await app.StopAsync();
+		isRunning = false;
+
+	}
+
+	public static IApplicationBuilder MapAdminSite(this WebApplication app, IServiceProvider services)
+	{
+
+		app.MapWhen(ctx => ctx.Connection.LocalPort == 8029, config =>
+		{
+
+			var baseFolder = app.Configuration["WorkingDirectory"];
+
+			config.UseStaticFiles(new StaticFileOptions
+			{
+
+				FileProvider = new ConfigurationFileProvider(app.Configuration, WebsiteConfig.PARM_OUTPUTPATH)
 
 			});
 
-      config.Map("/blog/posts", mapConfig =>
-      {
+			MapPosts(config, baseFolder);
 
-				mapConfig.UseStaticFiles(new StaticFileOptions
+		});
+
+		return app;
+
+	}
+
+	private static void MapPosts(IApplicationBuilder config, string baseFolder)
+	{
+
+		config.Map("/posts", mapConfig =>
+		{
+
+			mapConfig.Run(async ctx =>
+			{
+
+				if (!Directory.Exists(Path.Combine(app.Configuration["WorkingDirectory"], "posts"))) throw new FileNotFoundException("Posts folder not found");
+				var postLayout = File.ReadAllText(Path.Combine(app.Configuration["WorkingDirectory"], "themes", app.Configuration["Theme"], "layouts", "posts.html"));
+
+				if (string.IsNullOrEmpty(ctx.Request.Path)) throw new FileNotFoundException("Post not found");
+				if (ctx.Request.Path.Value.EndsWith(".html")) throw new FileNotFoundException("Post not found");
+
+				var post = new FileInfo(Path.Combine(app.Configuration["WorkingDirectory"], "posts", ctx.Request.Path.Value.Substring(1)));
+				if (!post.Exists) throw new FileNotFoundException($"Post not found {post.FullName}");
+
+				var result = ActionBuild.BuildPost(post, postLayout, new Config { Theme = app.Configuration["Theme"] }, app.Configuration["WorkingDirectory"]);
+
+				ctx.Response.ContentType = "text/html";
+				await ctx.Response.WriteAsync(result.fullHTML);
+
+			});
+
+		});
+
+		config.Map("/previewpost", mapConfig =>
+		{
+
+			mapConfig.Run(async ctx =>
+			{
+
+				if (!Directory.Exists(Path.Combine(app.Configuration["WorkingDirectory"], "posts"))) throw new FileNotFoundException("Posts folder not found");
+				var postLayout = File.ReadAllText(Path.Combine(app.Configuration["WorkingDirectory"], "themes", app.Configuration["Theme"], "layouts", "posts.html"));
+
+				var post = ctx.Request.Form["post"];
+
+				var result = ActionBuild.BuildPost(post, postLayout, new Config { Theme = app.Configuration["Theme"] }, app.Configuration["WorkingDirectory"]);
+
+				if (result.fullHTML.Contains("<base "))
 				{
-					RequestPath = "/blog/posts",
-					FileProvider = new PhysicalFileProvider(Path.Combine(baseFolder, "posts"))
-				});
+					result.fullHTML = result.fullHTML.Replace("""<base href="./../">""", """<base href="http://localhost:8029/">""");
+				}
+				else {
+					result.fullHTML = result.fullHTML.Replace("""</head>""", """<base href="http://localhost:8029/"></head>""");
+				}
 
-				var postLayout = File.ReadAllText(Path.Combine(baseFolder, "themes", "kliptok", "layouts", "posts.html"));
+				ctx.Response.ContentType = "text/html";
+				await ctx.Response.WriteAsync(result.fullHTML);
 
-        mapConfig.Run(async ctx =>
-        {
+			});
 
-					System.Console.WriteLine($"Request Path: {ctx.Request.Path}");
+		});
+	}
 
-					if (string.IsNullOrEmpty(ctx.Request.Path)) throw new FileNotFoundException("Post not found");
-					if (ctx.Request.Path.Value.EndsWith(".html")) throw new FileNotFoundException("Post not found");
+	private static WebsiteConfig _Config;
+	public static WebsiteConfig WebsiteConfig
+	{
+		get { return _Config; }
+		set { _Config = value; }
+	}
 
-					var post = new FileInfo(Path.Combine(baseFolder, "posts", ctx.Request.Path.Value.Substring(1)));
-					if (!post.Exists) throw new FileNotFoundException($"Post not found {post.FullName}");
+	public static string CombineUriPaths(string uri1, string uri2)
+	{
+		uri1 = uri1.TrimEnd('/');
+		uri2 = uri2.TrimStart('/');
+		return string.Format("{0}/{1}", uri1, uri2);
+	}
 
-					var result = ActionBuild.BuildPost(post, postLayout, new Config { Theme="kliptok" }, baseFolder);
-
-          ctx.Response.ContentType = "text/html";
-          await ctx.Response.WriteAsync(result.fullHTML);
-
-        });
-
-      });
-
-
-    });
-
-    return app;
-
-  }
+	public class PreviewPost {
+		public string Post { get; set; }
+	}
 
 }
