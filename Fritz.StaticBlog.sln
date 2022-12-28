@@ -9,6 +9,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test.StaticBlog", "Test.Sta
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test.StaticBlog.Web", "Test.StaticBlog.Web\Test.StaticBlog.Web.csproj", "{D29F3D38-7BD6-4F52-BD88-F17E78B8BA0B}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_Solution Files", "_Solution Files", "{89AAF1CB-07A8-4913-BC32-CB33892D9FB0}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

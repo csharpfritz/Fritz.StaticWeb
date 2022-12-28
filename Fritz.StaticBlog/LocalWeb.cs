@@ -1,4 +1,5 @@
 ﻿using Fritz.StaticBlog.Data;
+using Fritz.StaticBlog.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation;
 using Microsoft.Extensions.FileProviders;
 using System.Diagnostics;
@@ -98,7 +99,7 @@ public static class LocalWeb
 
         // TODO:  Replace with an iFileProvider that reads IConfiguration at file resolution time
         // SEE: https://learn.microsoft.com/dotnet/api/microsoft.extensions.fileproviders.ifileprovider
-        FileProvider = new PhysicalFileProvider(app.Configuration["OutputPath"])
+        FileProvider = new ConfigurationFileProvider(app.Configuration, "OutputPath")
 
       });
 
