@@ -11,7 +11,7 @@ public class RenderedSiteFixture : PageTest
     [Test]
     public async Task NavigateToABlogPostPage()
     {
-        await Page.GotoAsync("http://localhost:8029/blog/posts/8-CategoriesAndTeams.md");
+        await Page.GotoAsync("http://localhost:8029/posts/8-CategoriesAndTeams.md");
 
 				await Page.ScreenshotAsync(
 					new() { Path = "screenshot.png", FullPage = true }

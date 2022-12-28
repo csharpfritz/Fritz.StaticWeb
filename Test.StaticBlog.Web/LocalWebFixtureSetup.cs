@@ -12,7 +12,6 @@ public class LocalWebFixtureSetup
 
     LocalWeb.WebsiteConfig = new()
     {
-      BaseUrlPath = "/blog",
       OutputPath = """c:\dev\KlipTok.Blog\dist""",
       SiteConfig = new Fritz.StaticBlog.Data.Config() {
         Theme = "kliptok"

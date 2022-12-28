@@ -6,6 +6,14 @@ namespace Fritz.StaticBlog.adminweb.Pages;
 [IgnoreAntiforgeryToken]
 public class IndexModel : PageModel
 {
+
+  public readonly IConfiguration _Configuration;
+
+  public IndexModel(IConfiguration configuration)
+  {
+    _Configuration = configuration;
+  }
+
   public void OnGet()
   {
   }
@@ -15,18 +23,9 @@ public class IndexModel : PageModel
 
     Console.WriteLine("Posting...");
 
-    LocalWeb.WebsiteConfig = new()
-    {
-      BaseUrlPath = "/blog",
-      OutputPath = """c:\dev\KlipTok.Blog\dist""",
-      SiteConfig = new Fritz.StaticBlog.Data.Config()
-      {
-        Theme = "kliptok"
-      },
-      WorkingDirectory = """c:\dev\KlipTok.Blog""",
-    };
-
-    LocalWeb.Restart();
+    _Configuration["OutputPath"] = """c:\dev\KlipTok.Blog\dist""";
+    _Configuration["Theme"] = "kliptok";
+    _Configuration["WorkingDirectory"] = """c:\dev\KlipTok.Blog""";
 
   }
 

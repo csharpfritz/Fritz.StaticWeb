@@ -1,23 +1,47 @@
-﻿namespace Fritz.StaticBlog.Data;
+﻿using System.Collections;
 
-public class WebsiteConfig
+namespace Fritz.StaticBlog.Data;
+
+public class WebsiteConfig : IEnumerable<KeyValuePair<string,string>>
 {
 
-  public Config SiteConfig { get; set; }
+  private Dictionary<string, string> _Content = new()
+  {
+    {"OutputPath", AppContext.BaseDirectory },
+    {"Theme", "" },
+    {"WorkingDirectory", AppContext.BaseDirectory },
+  };
+
+  public Config SiteConfig { 
+    get { return new Config { Theme = _Content["Theme"] }; }
+    set { _Content["Theme"] = value.Theme; }
+  }
 
   /// <summary>
   /// Directory where the website markdown and theme are located
   /// </summary>
-  public string WorkingDirectory { get; set; } = AppContext.BaseDirectory;
+  public string WorkingDirectory
+  {
+    get { return _Content[nameof(WorkingDirectory)]; }
+    set { _Content[nameof(WorkingDirectory)] = value; }
+  }
   
   /// <summary>
   /// Output folder where the website will be written
   /// </summary>
-  public string OutputPath { get; set; } = AppContext.BaseDirectory;
+  public string OutputPath {
+    get { return _Content[nameof(OutputPath)]; }
+    set { _Content[nameof(OutputPath)] = value; }
+  }
 
-  /// <summary>
-  /// Base segment of URLs that should be used when rendering the test site
-  /// </summary>
-  public string BaseUrlPath { get; set; } = "/";
+  public IEnumerator<KeyValuePair<string, string>> GetEnumerator()
+  {
+    return ((IEnumerable<KeyValuePair<string, string>>)_Content).GetEnumerator();
+  }
+
+  IEnumerator IEnumerable.GetEnumerator()
+  {
+    return ((IEnumerable)_Content).GetEnumerator();
+  }
 
 }

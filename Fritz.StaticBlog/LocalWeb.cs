@@ -21,7 +21,8 @@ public static class LocalWeb
       EnvironmentName = Environments.Production
     });
 
-    builder.Services.AddSingleton<WebsiteConfig>(_Config ?? new WebsiteConfig());
+    //builder.Services.AddSingleton<WebsiteConfig>(_Config ?? new WebsiteConfig());
+    builder.Configuration.AddInMemoryCollection(_Config ?? new WebsiteConfig());
     builder.Services.AddSingleton<IFileProvider>(new EmbeddedFileProvider(typeof(LocalWeb).Assembly, "Fritz.StaticBlog.adminweb.Pages"));
 
     builder.Services.Configure<MvcRazorRuntimeCompilationOptions>(options =>
@@ -90,19 +91,18 @@ public static class LocalWeb
     app.MapWhen(ctx => ctx.Connection.LocalPort == 8029, config =>
     {
 
-      var siteConfig = services.GetRequiredService<WebsiteConfig>();
-
-      var baseFolder = siteConfig.WorkingDirectory;
+      var baseFolder = app.Configuration["WorkingDirectory"];
 
       config.UseStaticFiles(new StaticFileOptions
       {
 
-        RequestPath = "/blog",
-        FileProvider = new PhysicalFileProvider(siteConfig.OutputPath)
+        // TODO:  Replace with an iFileProvider that reads IConfiguration at file resolution time
+        // SEE: https://learn.microsoft.com/dotnet/api/microsoft.extensions.fileproviders.ifileprovider
+        FileProvider = new PhysicalFileProvider(app.Configuration["OutputPath"])
 
       });
 
-      MapPosts(config, baseFolder, siteConfig.BaseUrlPath);
+      MapPosts(config, baseFolder);
 
     });
 
@@ -110,34 +110,28 @@ public static class LocalWeb
 
   }
 
-  private static void MapPosts(IApplicationBuilder config, string baseFolder, string basePath)
+  private static void MapPosts(IApplicationBuilder config, string baseFolder)
   {
 
-    if (!Directory.Exists(Path.Combine(baseFolder, "posts"))) return;
-
-    config.Map("/blog/posts", mapConfig =>
+    config.Map("/posts", mapConfig =>
     {
-
-      mapConfig.UseStaticFiles(new StaticFileOptions
-      {
-        RequestPath = CombineUriPaths(basePath, "posts"),
-        FileProvider = new PhysicalFileProvider(Path.Combine(baseFolder, "posts"))
-      });
-
-      var postLayout = File.ReadAllText(Path.Combine(baseFolder, "themes", WebsiteConfig.SiteConfig.Theme, "layouts", "posts.html"));
 
       mapConfig.Run(async ctx =>
       {
 
+        if (!Directory.Exists(Path.Combine(app.Configuration["WorkingDirectory"], "posts"))) throw new FileNotFoundException("Posts folder not found");
+        var postLayout = File.ReadAllText(Path.Combine(app.Configuration["WorkingDirectory"], "themes", app.Configuration["Theme"], "layouts", "posts.html"));
+
+        Console.WriteLine($"WorkingDirectory: {app.Configuration["WorkingDirectory"]}");
         System.Console.WriteLine($"Request Path: {ctx.Request.Path}");
 
         if (string.IsNullOrEmpty(ctx.Request.Path)) throw new FileNotFoundException("Post not found");
         if (ctx.Request.Path.Value.EndsWith(".html")) throw new FileNotFoundException("Post not found");
 
-        var post = new FileInfo(Path.Combine(baseFolder, "posts", ctx.Request.Path.Value.Substring(1)));
+        var post = new FileInfo(Path.Combine(app.Configuration["WorkingDirectory"], "posts", ctx.Request.Path.Value.Substring(1)));
         if (!post.Exists) throw new FileNotFoundException($"Post not found {post.FullName}");
 
-        var result = ActionBuild.BuildPost(post, postLayout, WebsiteConfig.SiteConfig, baseFolder);
+        var result = ActionBuild.BuildPost(post, postLayout, new Config { Theme= app.Configuration["Theme"] }, app.Configuration["WorkingDirectory"]);
 
         ctx.Response.ContentType = "text/html";
         await ctx.Response.WriteAsync(result.fullHTML);
@@ -150,7 +144,7 @@ public static class LocalWeb
   private static WebsiteConfig _Config;
   public static WebsiteConfig WebsiteConfig
   {
-    get { return app.Services.GetRequiredService<WebsiteConfig>(); }
+    get { return _Config; }
     set { _Config = value; }
   }
 
