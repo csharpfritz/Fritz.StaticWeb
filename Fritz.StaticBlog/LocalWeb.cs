@@ -73,7 +73,7 @@ public static class LocalWeb
     }
     else
     {
-      var ps = new ProcessStartInfo($"http://localhost:8028?{System.DateTimeOffset.UtcNow.ToUnixTimeSeconds()}")
+      var ps = new ProcessStartInfo("http://localhost:8028")
       {
         UseShellExecute = true,
         Verb = "open"
@@ -103,9 +103,7 @@ public static class LocalWeb
       config.UseStaticFiles(new StaticFileOptions
       {
 
-        // TODO:  Replace with an iFileProvider that reads IConfiguration at file resolution time
-        // SEE: https://learn.microsoft.com/dotnet/api/microsoft.extensions.fileproviders.ifileprovider
-        FileProvider = new ConfigurationFileProvider(app.Configuration, "OutputPath")
+        FileProvider = new ConfigurationFileProvider(app.Configuration, WebsiteConfig.PARM_OUTPUTPATH)
 
       });
 
@@ -128,9 +126,6 @@ public static class LocalWeb
 
         if (!Directory.Exists(Path.Combine(app.Configuration["WorkingDirectory"], "posts"))) throw new FileNotFoundException("Posts folder not found");
         var postLayout = File.ReadAllText(Path.Combine(app.Configuration["WorkingDirectory"], "themes", app.Configuration["Theme"], "layouts", "posts.html"));
-
-        Console.WriteLine($"WorkingDirectory: {app.Configuration["WorkingDirectory"]}");
-        System.Console.WriteLine($"Request Path: {ctx.Request.Path}");
 
         if (string.IsNullOrEmpty(ctx.Request.Path)) throw new FileNotFoundException("Post not found");
         if (ctx.Request.Path.Value.EndsWith(".html")) throw new FileNotFoundException("Post not found");
@@ -162,24 +157,4 @@ public static class LocalWeb
     return string.Format("{0}/{1}", uri1, uri2);
   }
 
-  private static Task _RestartTask;
-  internal static void Restart()
-  {
-
-    _RestartTask = Task.Run(async () =>
-    {
-
-      await Console.Out.WriteLineAsync("Stopping webserver");
-      await app.StopAsync();
-
-      await Console.Out.WriteLineAsync("Stopped webserver");
-
-      await Console.Out.WriteLineAsync("Starting webserver");
-      await StartAdminWeb();
-      await Console.Out.WriteLineAsync("Started webserver");
-
-    });
-    //_RestartTask.Start();
-
-  }
 }
