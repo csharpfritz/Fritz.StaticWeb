@@ -5,16 +5,20 @@ namespace Fritz.StaticBlog.Data;
 public class WebsiteConfig : IEnumerable<KeyValuePair<string,string>>
 {
 
+  public const string PARM_OUTPUTPATH = "OutputPath";
+  public const string PARM_THEME = "Theme";
+  public const string PARM_WORKINGDIRECTORY = "WorkingDirectory";
+
   private Dictionary<string, string> _Content = new()
   {
-    {"OutputPath", AppContext.BaseDirectory },
-    {"Theme", "" },
-    {"WorkingDirectory", AppContext.BaseDirectory },
+    {PARM_OUTPUTPATH, AppContext.BaseDirectory },
+    {PARM_THEME, "" },
+    {PARM_WORKINGDIRECTORY, AppContext.BaseDirectory },
   };
 
   public Config SiteConfig { 
-    get { return new Config { Theme = _Content["Theme"] }; }
-    set { _Content["Theme"] = value.Theme; }
+    get { return new Config { Theme = _Content[PARM_THEME] }; }
+    set { _Content[PARM_THEME] = value.Theme; }
   }
 
   /// <summary>
@@ -22,8 +26,8 @@ public class WebsiteConfig : IEnumerable<KeyValuePair<string,string>>
   /// </summary>
   public string WorkingDirectory
   {
-    get { return _Content[nameof(WorkingDirectory)]; }
-    set { _Content[nameof(WorkingDirectory)] = value; }
+    get { return _Content[PARM_WORKINGDIRECTORY]; }
+    set { _Content[PARM_WORKINGDIRECTORY] = value; }
   }
   
   /// <summary>

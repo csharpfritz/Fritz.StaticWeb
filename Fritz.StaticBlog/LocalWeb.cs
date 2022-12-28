@@ -73,6 +73,12 @@ public static class LocalWeb
     }
     else
     {
+      var ps = new ProcessStartInfo($"http://localhost:8028?{System.DateTimeOffset.UtcNow.ToUnixTimeSeconds()}")
+      {
+        UseShellExecute = true,
+        Verb = "open"
+      };
+      Process.Start(ps);
       app.Run();
       isRunning = false;
     }
