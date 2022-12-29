@@ -1,0 +1,11 @@
+﻿@page
+@model Fritz.StaticBlog.adminweb.Pages.SettingsModel
+@using Fritz.StaticBlog.Data
+<dl>
+  <dt>OutputPath</dt>
+  <dd>@Model.Configuration[WebsiteConfig.PARM_OUTPUTPATH]</dd>
+  <dt>Theme</dt>
+  <dd>@Model.Configuration[WebsiteConfig.PARM_THEME]</dd>
+  <dt>WorkingDirectory</dt>
+  <dd>@Model.Configuration[WebsiteConfig.PARM_WORKINGDIRECTORY]</dd>
+</dl>

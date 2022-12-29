@@ -27,7 +27,19 @@ public class IndexModel : PageModel
   public IActionResult OnPost()
   {
 
-    _Configuration[WebsiteConfig.PARM_WORKINGDIRECTORY] = WorkingFolder; //"""c:\dev\KlipTok.Blog""";
+    if (string.IsNullOrEmpty(WorkingFolder))
+    {
+      ErrorMessage = "Please enter a valid folder name";
+      return Page();
+    }
+
+    if (!Directory.Exists(WorkingFolder))
+    {
+      ErrorMessage = "The folder does not exist";
+      return Page();
+    }
+
+    _Configuration[WebsiteConfig.PARM_WORKINGDIRECTORY] = WorkingFolder;
 
     if (System.IO.File.Exists(Path.Combine(_Configuration[WebsiteConfig.PARM_WORKINGDIRECTORY], "config.json"))) {
 
