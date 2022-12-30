@@ -14,7 +14,7 @@ public class ActionBuild : ActionBase, ICommandLineAction
 	internal List<PostData> _Posts = new();
 	internal LastBuild _LastBuild;
 
-	private static MarkdownPipeline pipeline = new MarkdownPipelineBuilder()
+	public static MarkdownPipeline pipeline = new MarkdownPipelineBuilder()
 		.UseAdvancedExtensions()
 		.UseYamlFrontMatter()
 		.UsePrism()

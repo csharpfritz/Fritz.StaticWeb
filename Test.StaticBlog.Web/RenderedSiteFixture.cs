@@ -1,21 +1,40 @@
+using Microsoft.VisualBasic;
+using NUnit.Framework;
 using System.Text.RegularExpressions;
 
 namespace Test.StaticBlog.Web;
 
-[Parallelizable(ParallelScope.Self)]
+
+//[Parallelizable(ParallelScope.Self)]
 [TestFixture]
-public class RenderedSiteFixture : PageTest
+public class RenderedSiteFixture : BaseSiteFixture
 {
 
+  public override Task SetupFixture()
+  {
 
-    [Test]
-    public async Task NavigateToABlogPostPage()
+    WebsiteConfig = new()
     {
-        await Page.GotoAsync("http://localhost:8029/posts/8-CategoriesAndTeams.md");
+      OutputPath = """c:\dev\KlipTok.Blog\dist""",
+      SiteConfig = new Fritz.StaticBlog.Data.Config()
+      {
+        Theme = "kliptok"
+      },
+      WorkingDirectory = """c:\dev\KlipTok.Blog""",
+    };
+    
+    return base.SetupFixture();
+    
+  }
 
-				await Page.ScreenshotAsync(
-					new() { Path = "screenshot.png", FullPage = true }
-				);
+  [Test]
+  public async Task NavigateToABlogPostPage()
+  {
+    await Page.GotoAsync("http://localhost:8029/posts/8-CategoriesAndTeams.md");
+
+    await Page.ScreenshotAsync(
+      new() { Path = "screenshot.png", FullPage = true }
+    );
 
     // Expect a title "to contain" a substring.
     await Expect(Page).ToHaveTitleAsync(new Regex("KlipTok"));

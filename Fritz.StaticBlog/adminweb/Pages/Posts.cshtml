@@ -1,0 +1,28 @@
+﻿@page
+@model Fritz.StaticBlog.adminweb.Pages.PostsModel
+
+<h2>Website Posts</h2>
+
+<div class="row">
+  <div class="col-md-3 " style="height: calc(100vh - 8rem); overflow: scroll;">
+    <a asp-page="/EditPost">New Post</a>
+
+    <!-- List of Posts -->
+		<ul class="list-group">
+			@foreach (var post in Model.Posts.OrderByDescending(p => p.fm.PublishDate))
+			{
+				<li class="list-group">
+					<a target="editPost" href="http://localhost:8029/posts/@post.fileName" class="list-group-item list-group-item-action">
+						@post.fm.Title
+					</a>
+        </li>
+      }
+		</ul>
+
+  </div>
+
+  <div class="col-md-9">
+    <iframe name="editPost" style="width: 100%; height: calc(100vh - 8rem);"></iframe>
+  </div>
+
+</div>

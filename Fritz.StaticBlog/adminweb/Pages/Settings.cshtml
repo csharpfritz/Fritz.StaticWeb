@@ -4,8 +4,20 @@
 <dl>
   <dt>OutputPath</dt>
   <dd>@Model.Configuration[WebsiteConfig.PARM_OUTPUTPATH]</dd>
-  <dt>Theme</dt>
-  <dd>@Model.Configuration[WebsiteConfig.PARM_THEME]</dd>
+
   <dt>WorkingDirectory</dt>
   <dd>@Model.Configuration[WebsiteConfig.PARM_WORKINGDIRECTORY]</dd>
+</dl>
+
+<dl>
+  <!-- Content of the Config stored in the properties of Model.ThisConfig -->
+
+  @foreach (var property in typeof(Config).GetProperties())
+  {
+
+    <dt>@property.Name</dt>
+    <dd>@property.GetValue(Model.ThisConfig)</dd>
+
+  }
+
 </dl>
