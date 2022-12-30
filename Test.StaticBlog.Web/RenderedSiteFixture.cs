@@ -27,7 +27,17 @@ public class RenderedSiteFixture : BaseSiteFixture
     
   }
 
-  [Test]
+	[Test(), Ignore("Feature not built yet")]
+	public async Task GoToIndex()
+	{
+
+		var response = await Page.GotoAsync("http://localhost:8029");
+
+		Assert.That(response?.Status ?? 404, Is.EqualTo(200));
+
+	}
+
+	[Test]
   public async Task NavigateToABlogPostPage()
   {
     await Page.GotoAsync("http://localhost:8029/posts/8-CategoriesAndTeams.md");
