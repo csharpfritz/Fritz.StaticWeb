@@ -6,155 +6,196 @@ using System.Diagnostics;
 
 public static class LocalWeb
 {
-  public const string PARM_RUNASYNC = "runasync";
-  static bool isRunning = false;
-  static WebApplication app;
+	public const string PARM_RUNASYNC = "runasync";
+	static bool isRunning = false;
+	static WebApplication app;
 
-  public static async Task StartAdminWeb(params string[] args)
-  {
+	public static async Task StartAdminWeb(params string[] args)
+	{
 
-    if (isRunning) return;
+		if (isRunning) return;
 
-    System.Console.WriteLine("Starting Admin Web");
+		System.Console.WriteLine("Starting Admin Web");
 
-    var builder = WebApplication.CreateBuilder(new WebApplicationOptions
-    {
-      EnvironmentName = Environments.Production
-    });
+		var builder = WebApplication.CreateBuilder(new WebApplicationOptions
+		{
+			EnvironmentName = Environments.Production
+		});
 
-    //builder.Services.AddSingleton<WebsiteConfig>(_Config ?? new WebsiteConfig());
-    builder.Configuration.AddInMemoryCollection(_Config ?? new WebsiteConfig());
-    builder.Services.AddSingleton<IFileProvider>(new EmbeddedFileProvider(typeof(LocalWeb).Assembly, "Fritz.StaticBlog.adminweb.Pages"));
+		//builder.Services.AddSingleton<WebsiteConfig>(_Config ?? new WebsiteConfig());
+		builder.Configuration.AddInMemoryCollection(_Config ?? new WebsiteConfig());
+		builder.Services.AddSingleton<IFileProvider>(new EmbeddedFileProvider(typeof(LocalWeb).Assembly, "Fritz.StaticBlog.adminweb.Pages"));
 
-    builder.Services.Configure<MvcRazorRuntimeCompilationOptions>(options =>
-    {
-      options.FileProviders.Clear();
-      options.FileProviders.Add(new EmbeddedFileProvider(typeof(LocalWeb).Assembly, "Fritz.StaticBlog.adminweb.Pages"));
-    });
+		builder.Services.Configure<MvcRazorRuntimeCompilationOptions>(options =>
+		{
+			options.FileProviders.Clear();
+			options.FileProviders.Add(new EmbeddedFileProvider(typeof(LocalWeb).Assembly, "Fritz.StaticBlog.adminweb.Pages"));
+		});
 
-    builder.WebHost.UseUrls(new[] { "http://localhost:8028", "http://localhost:8029" });
-    builder.Logging.ClearProviders();
-    builder.Logging.AddConsole();
-    builder.Logging.SetMinimumLevel(LogLevel.Trace);
+		builder.WebHost.UseUrls(new[] { "http://localhost:8028", "http://localhost:8029" });
+		builder.Logging.ClearProviders();
+		builder.Logging.AddConsole();
+		builder.Logging.SetMinimumLevel(LogLevel.Trace);
 
-    builder.Services.AddRazorPages(config =>
-    {
-      config.RootDirectory = "/";
-    })
-    .AddRazorRuntimeCompilation()
-    .AddApplicationPart(typeof(LocalWeb).Assembly);
+		builder.Services.AddRazorPages(config =>
+		{
+			config.RootDirectory = "/";
+		})
+		.AddRazorRuntimeCompilation()
+		.AddApplicationPart(typeof(LocalWeb).Assembly);
 
-    app = builder.Build();
+		builder.Services.AddCors();
 
-    await StartWebServer(args);
+		app = builder.Build();
 
-  }
+		await StartWebServer(args);
 
-  public static async Task StartWebServer(params string[] args)
-  {
-    app.UseDeveloperExceptionPage();
-    app.UseRouting();
+	}
 
-    app.UseStaticFiles(new StaticFileOptions
-    {
-      FileProvider = new ManifestEmbeddedFileProvider(typeof(LocalWeb).Assembly, "adminweb")
-    });
+	public static async Task StartWebServer(params string[] args)
+	{
+		app.UseDeveloperExceptionPage();
+		app.UseRouting();
 
-    app.MapAdminSite(app.Services);
-    app.MapRazorPages();
+		app.UseStaticFiles(new StaticFileOptions
+		{
+			FileProvider = new ManifestEmbeddedFileProvider(typeof(LocalWeb).Assembly, "adminweb")
+		});
 
-    System.Console.WriteLine("Admin Web Configured.  Navigate to http://localhost:8028 to get started");
+		app.UseCors(config =>
+		{
+			config.SetIsOriginAllowed(h => h.Contains("localhost"));
+			config.AllowAnyMethod();
+			config.AllowAnyHeader();
+		});
 
-    isRunning = true;
+		app.MapAdminSite(app.Services);
+		app.MapRazorPages();
 
-    if (args.Contains(PARM_RUNASYNC))
-    {
-      await app.StartAsync();
-    }
-    else
-    {
-      var ps = new ProcessStartInfo("http://localhost:8028")
-      {
-        UseShellExecute = true,
-        Verb = "open"
-      };
-      Process.Start(ps);
-      app.Run();
-      isRunning = false;
-    }
-  }
+		System.Console.WriteLine("Admin Web Configured.  Navigate to http://localhost:8028 to get started");
 
-  public static async Task Stop()
-  {
+		isRunning = true;
 
-    await app.StopAsync();
-    isRunning = false;
+		if (args.Contains(PARM_RUNASYNC))
+		{
+			await app.StartAsync();
+		}
+		else
+		{
+			var ps = new ProcessStartInfo("http://localhost:8028")
+			{
+				UseShellExecute = true,
+				Verb = "open"
+			};
+			Process.Start(ps);
+			app.Run();
+			isRunning = false;
+		}
+	}
 
-  }
+	public static async Task Stop()
+	{
 
-  public static IApplicationBuilder MapAdminSite(this WebApplication app, IServiceProvider services)
-  {
+		await app.StopAsync();
+		isRunning = false;
 
-    app.MapWhen(ctx => ctx.Connection.LocalPort == 8029, config =>
-    {
+	}
 
-      var baseFolder = app.Configuration["WorkingDirectory"];
+	public static IApplicationBuilder MapAdminSite(this WebApplication app, IServiceProvider services)
+	{
 
-      config.UseStaticFiles(new StaticFileOptions
-      {
+		app.MapWhen(ctx => ctx.Connection.LocalPort == 8029, config =>
+		{
 
-        FileProvider = new ConfigurationFileProvider(app.Configuration, WebsiteConfig.PARM_OUTPUTPATH)
+			var baseFolder = app.Configuration["WorkingDirectory"];
 
-      });
+			config.UseStaticFiles(new StaticFileOptions
+			{
 
-      MapPosts(config, baseFolder);
+				FileProvider = new ConfigurationFileProvider(app.Configuration, WebsiteConfig.PARM_OUTPUTPATH)
 
-    });
+			});
 
-    return app;
+			MapPosts(config, baseFolder);
 
-  }
+		});
 
-  private static void MapPosts(IApplicationBuilder config, string baseFolder)
-  {
+		return app;
 
-    config.Map("/posts", mapConfig =>
-    {
+	}
 
-      mapConfig.Run(async ctx =>
-      {
+	private static void MapPosts(IApplicationBuilder config, string baseFolder)
+	{
 
-        if (!Directory.Exists(Path.Combine(app.Configuration["WorkingDirectory"], "posts"))) throw new FileNotFoundException("Posts folder not found");
-        var postLayout = File.ReadAllText(Path.Combine(app.Configuration["WorkingDirectory"], "themes", app.Configuration["Theme"], "layouts", "posts.html"));
+		config.Map("/posts", mapConfig =>
+		{
 
-        if (string.IsNullOrEmpty(ctx.Request.Path)) throw new FileNotFoundException("Post not found");
-        if (ctx.Request.Path.Value.EndsWith(".html")) throw new FileNotFoundException("Post not found");
+			mapConfig.Run(async ctx =>
+			{
 
-        var post = new FileInfo(Path.Combine(app.Configuration["WorkingDirectory"], "posts", ctx.Request.Path.Value.Substring(1)));
-        if (!post.Exists) throw new FileNotFoundException($"Post not found {post.FullName}");
+				if (!Directory.Exists(Path.Combine(app.Configuration["WorkingDirectory"], "posts"))) throw new FileNotFoundException("Posts folder not found");
+				var postLayout = File.ReadAllText(Path.Combine(app.Configuration["WorkingDirectory"], "themes", app.Configuration["Theme"], "layouts", "posts.html"));
 
-        var result = ActionBuild.BuildPost(post, postLayout, new Config { Theme= app.Configuration["Theme"] }, app.Configuration["WorkingDirectory"]);
+				if (string.IsNullOrEmpty(ctx.Request.Path)) throw new FileNotFoundException("Post not found");
+				if (ctx.Request.Path.Value.EndsWith(".html")) throw new FileNotFoundException("Post not found");
 
-        ctx.Response.ContentType = "text/html";
-        await ctx.Response.WriteAsync(result.fullHTML);
+				var post = new FileInfo(Path.Combine(app.Configuration["WorkingDirectory"], "posts", ctx.Request.Path.Value.Substring(1)));
+				if (!post.Exists) throw new FileNotFoundException($"Post not found {post.FullName}");
 
-      });
+				var result = ActionBuild.BuildPost(post, postLayout, new Config { Theme = app.Configuration["Theme"] }, app.Configuration["WorkingDirectory"]);
 
-    });
-  }
+				ctx.Response.ContentType = "text/html";
+				await ctx.Response.WriteAsync(result.fullHTML);
 
-  private static WebsiteConfig _Config;
-  public static WebsiteConfig WebsiteConfig
-  {
-    get { return _Config; }
-    set { _Config = value; }
-  }
+			});
 
-  public static string CombineUriPaths(string uri1, string uri2)
-  {
-    uri1 = uri1.TrimEnd('/');
-    uri2 = uri2.TrimStart('/');
-    return string.Format("{0}/{1}", uri1, uri2);
-  }
+		});
+
+		config.Map("/previewpost", mapConfig =>
+		{
+
+			mapConfig.Run(async ctx =>
+			{
+
+				if (!Directory.Exists(Path.Combine(app.Configuration["WorkingDirectory"], "posts"))) throw new FileNotFoundException("Posts folder not found");
+				var postLayout = File.ReadAllText(Path.Combine(app.Configuration["WorkingDirectory"], "themes", app.Configuration["Theme"], "layouts", "posts.html"));
+
+				var post = ctx.Request.Form["post"];
+
+				var result = ActionBuild.BuildPost(post, postLayout, new Config { Theme = app.Configuration["Theme"] }, app.Configuration["WorkingDirectory"]);
+
+				if (result.fullHTML.Contains("<base "))
+				{
+					result.fullHTML = result.fullHTML.Replace("""<base href="./../">""", """<base href="http://localhost:8029/">""");
+				}
+				else {
+					result.fullHTML = result.fullHTML.Replace("""</head>""", """<base href="http://localhost:8029/"></head>""");
+				}
+
+				ctx.Response.ContentType = "text/html";
+				await ctx.Response.WriteAsync(result.fullHTML);
+
+			});
+
+		});
+	}
+
+	private static WebsiteConfig _Config;
+	public static WebsiteConfig WebsiteConfig
+	{
+		get { return _Config; }
+		set { _Config = value; }
+	}
+
+	public static string CombineUriPaths(string uri1, string uri2)
+	{
+		uri1 = uri1.TrimEnd('/');
+		uri2 = uri2.TrimStart('/');
+		return string.Format("{0}/{1}", uri1, uri2);
+	}
+
+	public class PreviewPost {
+		public string Post { get; set; }
+	}
 
 }
