@@ -22,7 +22,15 @@
   </div>
 
   <div class="col-md-10">
-    <iframe name="editPost" style="width: 100%; height: calc(100vh - 3.2rem);"></iframe>
+
+		@if (!string.IsNullOrEmpty(Model.ErrorMessage))
+		{
+			<div class="alert alert-danger">
+				@Model.ErrorMessage
+			</div>
+		}
+
+    <iframe name="editPost" style="width: 100%; height: calc(100vh - 3.2rem @Model.ErrorMessageHeight);"></iframe>
   </div>
 
 </div>

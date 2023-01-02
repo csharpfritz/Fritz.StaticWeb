@@ -14,11 +14,19 @@ namespace Fritz.StaticBlog.adminweb.Pages
 		}
 
 		public List<(Frontmatter fm, string fileName)> Posts { get; set; } = new();
+		public string ErrorMessage { get; private set; }
+		public string ErrorMessageHeight => string.IsNullOrEmpty(ErrorMessage) ? string.Empty : " 5em";
 
 		public void OnGet()
 		{
 
 			var workingFolder = Path.Combine(_Configuration[WebsiteConfig.PARM_WORKINGDIRECTORY], "posts");
+			
+			if (!Path.Exists(workingFolder))
+			{
+				ErrorMessage = $"The working folder {workingFolder} does not exist";
+				return;
+			}
 
 			var files = Directory.GetFiles(workingFolder, "*.md");
 
