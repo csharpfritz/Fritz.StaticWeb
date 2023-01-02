@@ -1,4 +1,4 @@
-﻿@page
+﻿@page "{articleTitle?}"
 @model Fritz.StaticBlog.adminweb.Pages.EditPostModel
 
 <div class="row vh-100">
@@ -13,7 +13,16 @@
 			<label for="Author">Author</label>
 			<input type="text" class="form-control" id="Author" placeholder="Enter Author" onchange="LiveReload()">
 			<label for="Title">Publish Date</label>
-			<input type="date" class="form-control" id="PublishDate" placeholder="Enter PublishDate" onchange="LiveReload()">
+			<input type="datetime-local" class="form-control " id="PublishDate" placeholder="Enter PublishDate" onchange="LiveReload()">
+			
+			<div class="form-check">
+				<label class="form-check-label" for="Title">Is Draft?</label>
+				<input class="form-check-input" type="checkbox" id="Draft">
+			</div>
+
+			<label for="Description">Abstract / Description:</label>
+			<input type="text" class="form-control" id="Description" placeholder="Enter Abstract / Description">
+
 		</fieldset>
 
 	</div>
@@ -60,6 +69,8 @@
 title: ${document.getElementById('Title').value}
 author: ${document.getElementById('Author').value}
 publishdate: ${document.getElementById('PublishDate').value}
+draft: ${document.getElementById('Draft').checked}
+description: ${document.getElementById('Description').value}
 ---
 `;
 		}

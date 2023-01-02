@@ -3,10 +3,15 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace Fritz.StaticBlog.adminweb.Pages
 {
-    public class EditPostModel : PageModel
-    {
-        public void OnGet()
-        {
-        }
-    }
+	public class EditPostModel : PageModel
+	{
+
+		public void OnGet(string? articleTitle)
+		{
+
+			
+
+		}
+
+	}
 }
