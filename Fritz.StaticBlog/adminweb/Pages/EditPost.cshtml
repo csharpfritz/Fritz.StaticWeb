@@ -9,19 +9,22 @@
 		<fieldset class="form-group">
 			<legend>Frontmatter for the post</legend>
 			<label for="Title">Title</label>
-			<input type="text" class="form-control" id="Title" placeholder="Enter Title" onchange="LiveReload()">
+			<input type="text" class="form-control" id="Title" placeholder="Enter Title" value="@Model.Frontmatter?.Title" onchange="LiveReload()">
 			<label for="Author">Author</label>
-			<input type="text" class="form-control" id="Author" placeholder="Enter Author" onchange="LiveReload()">
+			<input type="text" class="form-control" id="Author" placeholder="Enter Author" value="@Model.Frontmatter?.Author" onchange="LiveReload()">
 			<label for="Title">Publish Date</label>
-			<input type="datetime-local" class="form-control " id="PublishDate" placeholder="Enter PublishDate" onchange="LiveReload()">
+			<input type="datetime-local" class="form-control " id="PublishDate" placeholder="Enter PublishDate" value="@Model.Frontmatter?.PublishDate.ToString("yyyy-MM-ddTHH:mm")" onchange="LiveReload()">
 			
 			<div class="form-check">
 				<label class="form-check-label" for="Title">Is Draft?</label>
-				<input class="form-check-input" type="checkbox" id="Draft">
+				<input class="form-check-input" type="checkbox" id="Draft" @if (Model.Frontmatter?.Draft ?? true)
+				{
+					<text>checked=""</text>
+				}>
 			</div>
 
 			<label for="Description">Abstract / Description:</label>
-			<input type="text" class="form-control" id="Description" placeholder="Enter Abstract / Description">
+			<input type="text" class="form-control" id="Description" value="@Model.Frontmatter?.Description" placeholder="Enter Abstract / Description">
 
 		</fieldset>
 
@@ -64,6 +67,12 @@
 					title: "Save",
 			}],
 		});
+
+		@if (!string.IsNullOrEmpty(Model.Markdown))
+		{
+			<text>simplemde.value(`@Html.Raw(Model.Markdown)`);</text>
+		}
+
 		// More features available at:  https://github.com/sparksuite/simplemde-markdown-editor
 		var changeThrottle;
 		simplemde.codemirror.on("change", LiveReload);
@@ -92,11 +101,11 @@
 
 		function FormatFrontmatter() {
 			return `---
-title: ${document.getElementById('Title').value}
+title: "${document.getElementById('Title').value}"
 author: ${document.getElementById('Author').value}
 publishdate: ${document.getElementById('PublishDate').value}
 draft: ${document.getElementById('Draft').checked}
-description: ${document.getElementById('Description').value}
+description: "${document.getElementById('Description').value}"
 ---
 `;
 		}

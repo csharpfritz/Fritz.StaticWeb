@@ -3,16 +3,20 @@
 
 <h2>Website Posts</h2>
 
+<span><a id="editPostLink" href="">Edit Post</a></span>
+
 <div class="row">
   <div class="col-md-2" style=" height: calc(100vh - 3.2rem); overflow: scroll;">
-    <a asp-page="/EditPost">New Post</a>
+    <a asp-page="/EditPost" style="display: inline-block" class="py-2">New Post</a>
 
     <!-- List of Posts -->
 		<ul class="list-group">
 			@foreach (var post in Model.Posts.OrderByDescending(p => p.fm.PublishDate))
 			{
 				<li class="list-group">
-					<a target="editPost" href="http://localhost:8029/posts/@post.fileName" class="list-group-item list-group-item-action">
+					<a target="editPost" href="http://localhost:8029/posts/@post.fileName" 
+            onclick="setCurrentPost('@post.fileName');"
+            class="list-group-item list-group-item-action">
 						@post.fm.Title
 					</a>
         </li>
@@ -34,3 +38,18 @@
   </div>
 
 </div>
+
+@section scripts {
+
+  <script>
+
+    function setCurrentPost(postUrl)
+    {
+
+      document.getElementById("editPostLink").href = "/EditPost/" + postUrl;
+
+    }
+
+  </script>
+
+}

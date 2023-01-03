@@ -15,8 +15,8 @@ public class ActiveTagHelper: AnchorTagHelper
     if(Page == null || ViewContext.RouteData.Values["page"] == null)
       return;
 
-    if (string.Equals(Page, ViewContext.RouteData.Values["page"].ToString(),
-          StringComparison.InvariantCultureIgnoreCase))
+		if (string.Equals(Page, ViewContext.RouteData.Values["page"].ToString(),
+          StringComparison.InvariantCultureIgnoreCase) || (Page == "/Posts" && ViewContext.RouteData.Values["page"].ToString() == "/EditPost"))
     {
       var existingClasses = output.Attributes["class"].Value.ToString();
       if (output.Attributes["class"] != null)
