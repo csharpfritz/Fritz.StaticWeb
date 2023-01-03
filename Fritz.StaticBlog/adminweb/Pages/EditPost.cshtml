@@ -38,7 +38,33 @@
 @section scripts {
 	<script src="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.js"></script>
 	<script>
-		var simplemde = new SimpleMDE({ element: document.getElementById("editor") });
+		var simplemde = new SimpleMDE({ 
+			element: document.getElementById("editor"),
+			hideIcons: ["preview", "side-by-side", "fullscreen", "guide"],
+			toolbar: ["bold", "italic", "heading", "|", "quote", "unordered-list", "ordered-list", "|", "link", "table", "horizontal-rule", "|", 
+			{
+					name: "save",
+					action: function save(editor) {
+
+						// TODO: Validate frontmatter
+
+						let formData = new FormData();
+						formData.append('post', FormatFrontmatter() + simplemde.value());
+						fetch("http://localhost:8029/savepost", {
+							method: 'POST',
+							body: formData
+						}).then(response => {
+							// if successful, redirect to the Posts page
+							if (response.ok) {
+								window.location.href = "http://localhost:8028/posts";
+							}
+						})
+					},
+					className: "fa fa-floppy-o",
+					title: "Save",
+			}],
+		});
+		// More features available at:  https://github.com/sparksuite/simplemde-markdown-editor
 		var changeThrottle;
 		simplemde.codemirror.on("change", LiveReload);
 
