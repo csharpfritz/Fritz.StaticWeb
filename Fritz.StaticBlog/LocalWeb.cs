@@ -3,6 +3,7 @@ using Fritz.StaticBlog.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation;
 using Microsoft.Extensions.FileProviders;
 using System.Diagnostics;
+using System.Net;
 
 public static class LocalWeb
 {
@@ -178,6 +179,29 @@ public static class LocalWeb
 			});
 
 		});
+
+		config.Map("/savepost", mapConfig =>
+		{
+
+			mapConfig.Run(async ctx =>
+			{
+
+				if (!Directory.Exists(Path.Combine(app.Configuration["WorkingDirectory"], "posts"))) throw new FileNotFoundException("Posts folder not found");
+				var postLayout = File.ReadAllText(Path.Combine(app.Configuration["WorkingDirectory"], "themes", app.Configuration["Theme"], "layouts", "posts.html"));
+
+				var post = ctx.Request.Form["post"];
+				var result = ActionBuild.BuildPost(post, postLayout, new Config { Theme = app.Configuration["Theme"] }, app.Configuration["WorkingDirectory"]);
+
+				var fileName = result.fm.Title.Replace(' ', '-') + ".md";
+				File.WriteAllText(Path.Combine(app.Configuration["WorkingDirectory"], "posts", fileName), post);
+
+				ctx.Response.StatusCode = (int)HttpStatusCode.OK;
+
+			});
+
+		});
+
+
 	}
 
 	private static WebsiteConfig _Config;
