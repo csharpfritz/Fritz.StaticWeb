@@ -12,9 +12,10 @@ if (args.Length == 0)
 else
 {
 
-  var arguments = Parser.Default.ParseArguments<ActionBuild, ActionCreate>(args).MapResult(
+  var arguments = Parser.Default.ParseArguments<ActionBuild, ActionCreate, ActionRun>(args).MapResult(
     (ActionBuild options) => options.Execute(),
     (ActionCreate options) => options.Execute(),
+    (ActionRun options) => options.Execute(), 
     errors => 1
   );
 

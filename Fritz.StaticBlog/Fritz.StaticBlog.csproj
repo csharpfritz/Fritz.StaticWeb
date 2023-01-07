@@ -9,6 +9,7 @@
     <SelfContained>true</SelfContained>
 		<PublishReadyToRun>true</PublishReadyToRun>
 		<PublishTrimmed>true</PublishTrimmed>
+    <Version>0.3.0</Version>
 	</PropertyGroup>
 
   <ItemGroup>
