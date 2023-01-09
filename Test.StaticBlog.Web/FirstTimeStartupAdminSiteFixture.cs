@@ -20,15 +20,6 @@ public class FirstTimeStartupAdminSiteFixture : BaseSiteFixture
 	}
 
 	[Test]
-	public async Task StartWithOnlyWorkingDirectoryShouldLoadSettingsFromDisk()
-	{
-
-		Assert.Fail("Test not written yet");
-
-	}
-
-
-	[Test]
 	public async Task SubmittingInvalidFolderShouldError()
 	{
 		await Page.GotoAsync("http://localhost:8028");

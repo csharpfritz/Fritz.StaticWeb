@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation;
 using Microsoft.Extensions.FileProviders;
 using System.Diagnostics;
 using System.Net;
+using System.Text.Json;
 
 public static class LocalWeb
 {
@@ -22,6 +23,19 @@ public static class LocalWeb
 		{
 			EnvironmentName = Environments.Production
 		});
+
+		var configPath = Path.Combine(_Config[WebsiteConfig.PARM_WORKINGDIRECTORY], "config.json");
+		if (System.IO.File.Exists(configPath))
+		{
+			var contents = System.IO.File.ReadAllText(configPath);
+			try
+			{
+				var ThisConfig = JsonSerializer.Deserialize<Config>(contents);
+				_Config.SiteConfig = ThisConfig;
+			}
+			catch
+			{ }
+		}
 
 		//builder.Services.AddSingleton<WebsiteConfig>(_Config ?? new WebsiteConfig());
 		builder.Configuration.AddInMemoryCollection(_Config ?? new WebsiteConfig());
@@ -169,7 +183,8 @@ public static class LocalWeb
 				{
 					result.fullHTML = result.fullHTML.Replace("""<base href="./../">""", """<base href="http://localhost:8029/">""");
 				}
-				else {
+				else
+				{
 					result.fullHTML = result.fullHTML.Replace("""</head>""", """<base href="http://localhost:8029/"></head>""");
 				}
 
@@ -218,7 +233,8 @@ public static class LocalWeb
 		return string.Format("{0}/{1}", uri1, uri2);
 	}
 
-	public class PreviewPost {
+	public class PreviewPost
+	{
 		public string Post { get; set; }
 	}
 

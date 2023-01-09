@@ -2,24 +2,28 @@
 
 namespace Fritz.StaticBlog.Data;
 
-public class WebsiteConfig : IEnumerable<KeyValuePair<string,string>>
+public class WebsiteConfig : IEnumerable<KeyValuePair<string, string>>
 {
 
-  public const string PARM_OUTPUTPATH = "OutputPath";
-  public const string PARM_THEME = "Theme";
-  public const string PARM_WORKINGDIRECTORY = "WorkingDirectory";
+	public const string PARM_OUTPUTPATH = "OutputPath";
+	public const string PARM_THEME = "Theme";
+	public const string PARM_WORKINGDIRECTORY = "WorkingDirectory";
 
-  private Dictionary<string, string> _Content = new()
-  {
-    {PARM_OUTPUTPATH, AppContext.BaseDirectory },
-    {PARM_THEME, "" },
-    {PARM_WORKINGDIRECTORY, AppContext.BaseDirectory },
-  };
+	private Dictionary<string, string> _Content = new()
+	{
+		{PARM_OUTPUTPATH, AppContext.BaseDirectory },
+		{PARM_THEME, "" },
+		{PARM_WORKINGDIRECTORY, AppContext.BaseDirectory },
+	};
 
-  public Config SiteConfig { 
-    get { return new Config { Theme = _Content[PARM_THEME] }; }
-    set { _Content[PARM_THEME] = value.Theme; }
-  }
+	public Config SiteConfig {
+		get { return new Config { Theme = _Content[PARM_THEME] }; }
+		set { _Content[PARM_THEME] = value.Theme; }
+	}
+
+	public string this[string key] {
+		get { return _Content[key]; }
+	}
 
   /// <summary>
   /// Directory where the website markdown and theme are located
