@@ -1,18 +1,27 @@
+using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using CommandLine;
+using Fritz.StaticBlog.Infrastructure;
 using Markdig;
 using Markdig.Prism;
+using ILogger = Fritz.StaticBlog.Infrastructure.ILogger;
 
 namespace Fritz.StaticBlog;
 
 [Verb("build", HelpText = "Build the website")]
 public class ActionBuild : ActionBase, ICommandLineAction
 {
-  private const string ArchiveFileName = "archive.html";
-  internal List<PostData> _Posts = new();
+	private const string ArchiveFileName = "archive.html";
+	internal List<PostData> _Posts = new();
 	internal LastBuild _LastBuild;
+
+	public static MarkdownPipeline pipeline = new MarkdownPipelineBuilder()
+		.UseAdvancedExtensions()
+		.UseYamlFrontMatter()
+		.UsePrism()
+		.Build();
 
 	[Option('f', "force", Default = (bool)false)]
 	public bool Force { get; set; }
@@ -33,15 +42,19 @@ public class ActionBuild : ActionBase, ICommandLineAction
 	[Option('l', "lastbuild", Default = ".lastbuild.json", Required = false, HelpText = "The file to store the last build configuration")]
 	public string LastBuildFilename { get; set; } = ".lastbuild.json";
 
+	public ILogger Logger { get; set; } = new ConsoleLogger();
+
 	public override int Execute()
 	{
 
-		Console.WriteLine($"Outputting to: {OutputPath}");
+		Logger.Log($"Outputting to: {OutputPath}");
+
+		var sw = Stopwatch.StartNew();
 
 		var outValue = base.Execute();
 		if (outValue > 0) return outValue;
 
-		System.Console.WriteLine($"Building in folder {WorkingDirectory} and distributing to {Path.Combine(WorkingDirectory, OutputPath)}");
+		Logger.Log($"Building in folder {WorkingDirectory} and distributing to {Path.Combine(WorkingDirectory, OutputPath)}");
 
 		BuildPosts();
 
@@ -51,11 +64,13 @@ public class ActionBuild : ActionBase, ICommandLineAction
 
 		BuildIndex();
 
-    BuildArchive();
+		BuildArchive();
 
 		DeployWwwRoot();
 
 		SaveLastBuild();
+
+		Logger.Log($"Built website successfully in {sw.Elapsed}");
 
 		return 0;
 
@@ -67,31 +82,31 @@ public class ActionBuild : ActionBase, ICommandLineAction
 		var outputDir = new DirectoryInfo(Path.Combine(WorkingDirectory, OutputPath));
 		var outValue = outputDir.Exists;
 
-		if (!outValue) System.Console.WriteLine($"Output folder '{outputDir.FullName}' does not exist");
+		if (!outValue) Logger.Log($"Output folder '{outputDir.FullName}' does not exist");
 		if (outValue)
 		{
 			outValue = new DirectoryInfo(Path.Combine(WorkingDirectory, "themes")).Exists;
-			if (!outValue) System.Console.WriteLine("themes folder is missing");
+			if (!outValue) Logger.Log("themes folder is missing");
 		}
 
 		if (outValue)
 		{
 			outValue = new DirectoryInfo(Path.Combine(WorkingDirectory, "posts")).Exists;
-			if (!outValue) System.Console.WriteLine("posts folder is missing");
+			if (!outValue) Logger.Log("posts folder is missing");
 		}
 
 		/*  -- Making pages folder optional --
 if (outValue)
 {
 outValue = new DirectoryInfo(Path.Combine(WorkingDirectory, "pages")).Exists;
-if (!outValue) System.Console.WriteLine("pages folder is missing");
+if (!outValue) Logger.Log("pages folder is missing");
 }
 **/
 
 		if (outValue)
 		{
 			outValue = new FileInfo(Path.Combine(WorkingDirectory, "config.json")).Exists;
-			if (!outValue) System.Console.WriteLine($"config.json file is missing");
+			if (!outValue) Logger.Log($"config.json file is missing");
 		}
 
 		// Validate LastBuild configuration
@@ -100,13 +115,14 @@ if (!outValue) System.Console.WriteLine("pages folder is missing");
 			var exists = new FileInfo(Path.Combine(WorkingDirectory, LastBuildFilename)).Exists;
 			if (!exists)
 			{
-				System.Console.WriteLine($"LastBuild file is missing - Complete build requested");
+				Logger.Log($"LastBuild file is missing - Complete build requested");
 				_LastBuild = new LastBuild { Timestamp = DateTime.MinValue };
 			}
 			else
 			{
 				var file = File.OpenRead(Path.Combine(WorkingDirectory, LastBuildFilename));
 				_LastBuild = JsonSerializer.DeserializeAsync<LastBuild>(file).GetAwaiter().GetResult();
+				Logger.Log($"Website last built at: {_LastBuild.Timestamp} UTC");
 				file.Dispose();
 			}
 		}
@@ -118,9 +134,9 @@ if (!outValue) System.Console.WriteLine("pages folder is missing");
 	internal void BuildIndex()
 	{
 
-		if (!Force && !_Posts.Any(p => p.LastUpdate > _LastBuild?.Timestamp))
+		if (!Force && _Posts.Any(p => p.LastUpdate > _LastBuild?.Timestamp))
 		{
-			Console.WriteLine("No new posts found.  Skipping build of index");
+			Logger.Log("No new posts found.  Skipping build of index");
 			return;
 		}
 
@@ -132,32 +148,32 @@ if (!outValue) System.Console.WriteLine("pages folder is missing");
 		// If Config.Link is set, add a reference to the RSS file
 		if (Config.Link != null)
 		{
-			outContent = outContent.Replace("</head>", $"<link rel=\"alternate\" type=\"application/rss+xml\" title=\"{Config.Title}\" href=\"rss.xml\" /></head>");
+			outContent = outContent.Replace("</head>", $"""<link rel="alternate" type="application/rss+xml" title="{Config.Title}" href="rss.xml" /></head>""");
 		}
 
-		outContent = ApplyMacros(outContent);
+		outContent = ApplyMacros(outContent, WorkingDirectory, Config, Logger);
 
 		// Set the title from config
 		outContent = outContent.Replace("{{ Title }}", Config.Title);
 
 		// Load the first 10 articles on the index page
-		Console.WriteLine($"Found {_Posts.Count()} posts to format");
+		Logger.Log($"Found {_Posts.Count()} posts to format");
 		var orderedPosts = _Posts.Where(p => !p.Frontmatter.Draft).OrderByDescending(p => p.Frontmatter.PublishDate);
 		var sb = new StringBuilder();
 		for (var i = 0; i < Math.Min(10, orderedPosts.Count()); i++)
 		{
 
 			var thisPost = orderedPosts.Skip(i).First();
-      sb.AppendLine($"<h2 class=\"postTitle\"><a href=\"{thisPost.Filename}\">{thisPost.Frontmatter.Title}</a></h2>");
-      sb.AppendLine($"<h4>Written By: {thisPost.Frontmatter.Author}</h4>");
+			sb.AppendLine($"""<h2 class="postTitle"><a href="{thisPost.Filename}">{thisPost.Frontmatter.Title}</a></h2>""");
+			sb.AppendLine($"<h4>Written By: {thisPost.Frontmatter.Author}</h4>");
 			sb.AppendLine($"<h5>Published: {thisPost.Frontmatter.PublishDate}</h5>");
 
-      sb.AppendLine(thisPost.Abstract);
+			sb.AppendLine(thisPost.Abstract);
 
 		}
 
 		outContent = outContent.Replace("{{ Body }}", sb.ToString());
-		outContent = Minify(outContent);
+		outContent = MinifyOutput ? Minify(outContent) : outContent;
 
 		indexFile.Write(outContent);
 		indexFile.Close();
@@ -170,7 +186,7 @@ if (!outValue) System.Console.WriteLine("pages folder is missing");
 		var outValue = new DirectoryInfo(Path.Combine(WorkingDirectory, "pages")).Exists;
 		if (!outValue)
 		{
-			Console.WriteLine("Pages folder does not exist... skipping");
+			Logger.Log("Pages folder does not exist... skipping");
 			return;
 		}
 
@@ -185,41 +201,24 @@ if (!outValue) System.Console.WriteLine("pages folder is missing");
 		var outputFolder = new DirectoryInfo(Path.Combine(WorkingDirectory, OutputPath, "posts"));
 		if (!outputFolder.Exists) outputFolder.Create();
 
-		var pipeline = new MarkdownPipelineBuilder()
-						.UseAdvancedExtensions()
-						.UseYamlFrontMatter()
-						.UsePrism()
-						.Build();
-
 		// Load layout for post
 		var layoutText = File.ReadAllText(Path.Combine(WorkingDirectory, "themes", Config.Theme, "layouts", "posts.html"));
 
 		foreach (var post in postsFolder.GetFiles("*.md"))
 		{
 
-			var txt = File.ReadAllText(post.FullName, Encoding.UTF8);
+			// Skip if the post has not been updated since the last build
+			if (!Force && post.LastWriteTimeUtc < (_LastBuild?.Timestamp ?? DateTime.MinValue)) continue;
 
+			(string html, string mdHTML, Frontmatter fm) = BuildPost(post, layoutText, Config, WorkingDirectory, Logger);
+
+			string outputHTML = MinifyOutput ? Minify(html) : html;
+
+			// Identify the output file name
 			var baseName = Path.Combine(post.Name[0..^3] + ".html");
 			var fileName = Path.Combine(outputFolder.FullName, baseName);
 
-			var doc = Markdig.Markdown.Parse(txt, pipeline);
-			var fm = txt.GetFrontMatter<Frontmatter>();
-
-			var thisLayout = InsertHeadContent(fm, layoutText);
-
-			var mdHTML = Markdig.Markdown.ToHtml(doc, pipeline);
-
-			if (Force || post.LastWriteTimeUtc > (_LastBuild?.Timestamp ?? DateTime.MinValue))
-			{
-
-				string outputHTML = thisLayout.Replace("{{ Body }}", mdHTML);
-				outputHTML = ApplyMacros(outputHTML);
-				outputHTML = fm.Format(outputHTML);
-				outputHTML = Minify(outputHTML);
-
-				File.WriteAllText(fileName, outputHTML);
-
-			}
+			File.WriteAllText(fileName, outputHTML);
 
 			_Posts.Add(new PostData
 			{
@@ -234,28 +233,72 @@ if (!outValue) System.Console.WriteLine("pages folder is missing");
 
 	}
 
-	internal string InsertHeadContent(Frontmatter fm, string layout) 
+	internal static (string fullHTML, string postHTML, Frontmatter fm)
+		BuildPost(
+			FileInfo postFile,
+			string layoutText,
+			Config config,
+			string workingDirectory,
+			ILogger logger)
+	{
+
+		var txt = File.ReadAllText(postFile.FullName, Encoding.UTF8);
+		return BuildPost(txt, layoutText, config, workingDirectory, logger);
+
+	}
+
+	internal static (string fullHTML, string postHTML, Frontmatter fm)
+		BuildPost(
+			string mdContents,
+			string layoutText,
+			Config config,
+			string workingDirectory,
+			ILogger logger)
+	{
+
+		var doc = Markdig.Markdown.Parse(mdContents, pipeline);
+		var fm = mdContents.GetFrontMatter<Frontmatter>();
+
+		var thisLayout = InsertHeadContent(fm, layoutText, config);
+
+		var mdHTML = Markdig.Markdown.ToHtml(doc, pipeline);
+
+		string outputHTML = thisLayout.Replace("{{ Body }}", mdHTML);
+		outputHTML = ApplyMacros(outputHTML, workingDirectory, config, logger);
+		outputHTML = fm?.Format(outputHTML) ?? outputHTML;
+
+		return (outputHTML, mdHTML, fm);
+
+	}
+
+	internal static string InsertHeadContent(Frontmatter fm, string layout, Config config)
 	{
 
 		var workingText = layout;
 
-		var ogHeaders = $"<meta property=\"og:title\" content=\"{fm.Title}\">\n" +
-			$"<meta property=\"og:description\" content=\"{fm.Description}\" >\n" +
-			$"<meta property=\"og:image\" content=\"{fm.Preview}\">" +
-			"<meta property=\"og:type\" content=\"website\">" +
-			$"<meta property=\"fb:app_id\" content=\"{Config.FacebookId}\">" +
-			"</head>";
+		if (fm == null) return workingText;
+
+		var ogHeaders = $"""
+        <meta property="og:title" content="{fm.Title}">
+        <meta property="og:description" content="{fm.Description}">
+        <meta property="og:image" content="{fm.Preview}">
+        <meta property="og:type" content="website">
+        <meta property="fb:app_id" content="{config.FacebookId}">
+      </head>
+      """;
+
 		//$"< meta property = "og:url" content = "https://kliptok.com/@Model.Channel.DisplayName.ToLowerInvariant()" >
 		//< meta property = "og:site_name" content = "KlipTok - Social Media Fun for Twitch Clips" >
 
 		workingText = workingText.Replace("</head>", ogHeaders, StringComparison.InvariantCultureIgnoreCase);
 
-		var twitterHeaders = $"\t<meta name=\"twitter:card\" content=\"summary_large_image\">\r\n\t" +
-			// $"<meta name=\"twitter:site\" content=\"@@thekliptok\">\r\n\t" +
-			$"<meta name=\"twitter:title\" content=\"{fm.Title}\">\r\n\t" +
-			$"<meta name=\"twitter:description\" content=\"{fm.Description}\">\r\n\t" +
-			$"<meta name=\"twitter:image\" content=\"{fm.Preview}\">\r\n" +
-			"</head>";
+		var twitterHeaders = $"""
+        <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:title" content="{fm.Title}">
+        <meta name="twitter:description" content="{fm.Description}">
+        <meta name="twitter:image" content="{fm.Preview}">
+      </head>
+    """;
 
 
 		workingText = workingText.Replace("</head>", twitterHeaders, StringComparison.InvariantCultureIgnoreCase);
@@ -269,12 +312,28 @@ if (!outValue) System.Console.WriteLine("pages folder is missing");
 
 		if (Config.Link == null)
 		{
-			Console.WriteLine("RSS link is not configured... skipping");
+			Logger.Log("RSS link is not configured... skipping");
 			return;
 		}
 
-		var rssHeader = $"<rss version=\"2.0\">\n<channel>\n<title>{Config.Title}</title>\n<link>{Config.Link}</link>\n<description>{Config.Description}</description>\n<language>en-us</language>\n<lastBuildDate>{DateTime.UtcNow.ToString("r")}</lastBuildDate>\n<ttl>60</ttl>\n<copyright>Copyright {DateTime.UtcNow.Year} {Config.Owner}</copyright>\n";
-		var rssHeader2 = $"<managingEditor>{Config.EditorEmail}</managingEditor>\n<webMaster>{Config.WebmasterEmail}</webMaster>\n<pubDate>{DateTime.UtcNow.ToString("r")}</pubDate>\n<docs>http://blogs.law.harvard.edu/tech/rss</docs>\n<generator>Fritz.StaticWeb</generator>\n";
+		var rssHeader = $"""
+      <rss version="2.0">
+        <channel>
+          <title>{Config.Title}</title>
+          <link>{Config.Link}</link>
+          <description>{Config.Description}</description>
+          <language>en-us</language>
+          <lastBuildDate>{DateTime.UtcNow.ToString("r")}</lastBuildDate>
+          <ttl>60</ttl>
+          <copyright>Copyright {DateTime.UtcNow.Year} {Config.Owner}</copyright>
+      """;
+		var rssHeader2 = $"""
+      <managingEditor>{Config.EditorEmail}</managingEditor>
+      <webMaster>{Config.WebmasterEmail}</webMaster>
+      <pubDate>{DateTime.UtcNow.ToString("r")}</pubDate>
+      <docs>http://blogs.law.harvard.edu/tech/rss</docs>
+      <generator>Fritz.StaticWeb</generator>
+    """;
 
 		var rssItems = new List<string>();
 		foreach (var post in _Posts.Where(p => !p.Frontmatter.Draft).OrderByDescending(p => p.Frontmatter.PublishDate))
@@ -283,7 +342,15 @@ if (!outValue) System.Console.WriteLine("pages folder is missing");
 			var posH2 = post.Abstract.IndexOf("<h2");
 			posH2 = posH2 < 0 ? post.Abstract.Length : posH2;
 			var postAbstract = post.Abstract.Substring(0, posH2).Trim();
-			var rssItem = $"<item>\n<title>{post.Frontmatter.Title}</title>\n<link>{Config.Link}/posts/{post.Filename}</link>\n<description>{postAbstract}</description>\n<pubDate>{post.Frontmatter.PublishDate.ToString("r")}</pubDate>\n<guid>{Config.Link}/posts/{post.Filename}</guid>\n</item>\n";
+			var rssItem = $"""
+        <item>
+          <title>{post.Frontmatter.Title}</title>
+          <link>{Config.Link}/posts/{post.Filename}</link>
+          <description>{postAbstract}</description>
+          <pubDate>{post.Frontmatter.PublishDate.ToString("r")}</pubDate>
+          <guid>{Config.Link}/posts/{post.Filename}</guid>
+        </item>
+      """;
 			rssItems.Add(rssItem);
 
 		}
@@ -308,38 +375,39 @@ if (!outValue) System.Console.WriteLine("pages folder is missing");
 
 	}
 
-  /// <summary>
-  /// Build the archive.html page that contains a list of all posts on the site
-  /// </summary>
-  internal void BuildArchive()
-  {
+	/// <summary>
+	/// Build the archive.html page that contains a list of all posts on the site
+	/// </summary>
+	internal void BuildArchive()
+	{
 
 
-    var layoutInfo = new FileInfo(Path.Combine(WorkingDirectory, "themes", Config.Theme, "layouts", ArchiveFileName));
-    if (!layoutInfo.Exists)
-    {
-      Console.WriteLine("Layout for archive page missing - skipping");
-      return;
-    }
+		var layoutInfo = new FileInfo(Path.Combine(WorkingDirectory, "themes", Config.Theme, "layouts", ArchiveFileName));
+		if (!layoutInfo.Exists)
+		{
+			Logger.Log("Layout for archive page missing - skipping");
+			return;
+		}
 
-    using var archiveFile = File.CreateText(Path.Combine(WorkingDirectory, OutputPath, ArchiveFileName));
-    using var archiveLayout = File.OpenText(Path.Combine(WorkingDirectory, "themes", Config.Theme, "layouts", ArchiveFileName));
+		using var archiveFile = File.CreateText(Path.Combine(WorkingDirectory, OutputPath, ArchiveFileName));
+		using var archiveLayout = File.OpenText(Path.Combine(WorkingDirectory, "themes", Config.Theme, "layouts", ArchiveFileName));
 
-    var outContent = archiveLayout.ReadToEnd();
+		var outContent = archiveLayout.ReadToEnd();
 
-    // Set the title from config
-    outContent = ApplyMacros(outContent);
-    outContent = outContent.Replace("{{ Title }}", Config.Title);
+		// Set the title from config
+		outContent = ApplyMacros(outContent, WorkingDirectory, Config, Logger);
+		outContent = outContent.Replace("{{ Title }}", Config.Title);
 
-    var orderedPosts = _Posts.Where(p => !p.Frontmatter.Draft).OrderByDescending(p => p.Frontmatter.PublishDate);
-    var sb = new StringBuilder();
+		var orderedPosts = _Posts.Where(p => !p.Frontmatter.Draft).OrderByDescending(p => p.Frontmatter.PublishDate);
+		var sb = new StringBuilder();
 		var years = orderedPosts.Select(o => o.Frontmatter.PublishDate.Year).Distinct().OrderByDescending(o => o);
 
-		foreach (var thisYear in years) {
+		foreach (var thisYear in years)
+		{
 
 			sb.AppendLine($"<h2>{thisYear}</h2>");
 			sb.AppendLine("<ul>");
-			foreach (var thisPost in orderedPosts.Where(o => o.Frontmatter.PublishDate.Year == thisYear)) 
+			foreach (var thisPost in orderedPosts.Where(o => o.Frontmatter.PublishDate.Year == thisYear))
 			{
 
 				sb.AppendLine($"<li>{thisPost.Frontmatter.PublishDate.ToString("yyyy-MM-dd")} - <a href=\"{thisPost.Filename}\">{thisPost.Frontmatter.Title}</a></li>");
@@ -349,19 +417,17 @@ if (!outValue) System.Console.WriteLine("pages folder is missing");
 
 		}
 
-    outContent = outContent.Replace("{{ Body }}", sb.ToString());
-    outContent = Minify(outContent);
+		outContent = outContent.Replace("{{ Body }}", sb.ToString());
+		outContent = MinifyOutput ? Minify(outContent) : outContent;
 
-    archiveFile.Write(outContent);
-    archiveFile.Close();
+		archiveFile.Write(outContent);
+		archiveFile.Close();
 
 
-  }
+	}
 
-  private string Minify(string html)
+	private static string Minify(string html)
 	{
-
-		if (!MinifyOutput) return html;
 
 		var settings = new NUglify.Html.HtmlSettings();
 		settings.KeepTags.UnionWith(new string[] { "html", "head", "body" });
@@ -443,20 +509,20 @@ if (!outValue) System.Console.WriteLine("pages folder is missing");
 
 	}
 
-	private string ApplyMacros(string initialHTML)
+	private static string ApplyMacros(string initialHTML, string workingDirectory, Config config, ILogger logger)
 	{
 
 		var outHTML = initialHTML;
-		outHTML = HandleIncludes(outHTML);
-    outHTML = outHTML.Replace("{{ CurrentYear }}", DateTime.Now.Year.ToString());
-    outHTML = outHTML.Replace("{{ ArchiveURL }}", ArchiveFileName);
+		outHTML = HandleIncludes(outHTML, workingDirectory, config, logger);
+		outHTML = outHTML.Replace("{{ CurrentYear }}", DateTime.Now.Year.ToString());
+		outHTML = outHTML.Replace("{{ ArchiveURL }}", ArchiveFileName);
 
 
-    return outHTML;
+		return outHTML;
 
 	}
 
-	private string HandleIncludes(string outHTML)
+	private static string HandleIncludes(string outHTML, string workingDirectory, Config config, ILogger logger)
 	{
 
 		var includeRegex = new Regex(@"\{\{ Include:([a-zA-Z0-9\-_\.]+) \}\}");
@@ -466,10 +532,10 @@ if (!outValue) System.Console.WriteLine("pages folder is missing");
 		{
 
 			var includeFile = match.Groups[1].Value;
-			var includePath = Path.Combine(WorkingDirectory, "themes", Config.Theme, "includes", $"{includeFile}.html");
+			var includePath = Path.Combine(workingDirectory, "themes", config.Theme, "includes", $"{includeFile}.html");
 			if (!File.Exists(includePath))
 			{
-				Console.WriteLine($"Include file {includePath} not found - skipping");
+				logger.Log($"Include file {includePath} not found - skipping");
 				workingHTML = workingHTML.Replace(match.Value, string.Empty);
 				continue;
 			}
@@ -478,13 +544,14 @@ if (!outValue) System.Console.WriteLine("pages folder is missing");
 			workingHTML = workingHTML.Replace(match.Value, includeContent);
 
 		}
- 
+
 		return workingHTML;
 
 	}
 
 	private void SaveLastBuild()
 	{
+		_LastBuild.Timestamp = DateTime.UtcNow;
 		var outText = JsonSerializer.Serialize(_LastBuild);
 		File.WriteAllText(Path.Combine(WorkingDirectory, LastBuildFilename), outText);
 	}

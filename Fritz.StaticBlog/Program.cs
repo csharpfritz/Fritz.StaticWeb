@@ -1,22 +1,22 @@
-﻿using System;
-using System.Collections.Generic;
+﻿global using Fritz.StaticBlog;
+global using Fritz.StaticBlog.Data;
+
 using CommandLine;
 
-namespace Fritz.StaticBlog
+if (args.Length == 0)
 {
-  class Program
-	{
 
-		static void Main(string[] args)
-		{
-			var arguments = Parser.Default.ParseArguments<ActionBuild, ActionCreate>(args).MapResult(
-				(ActionBuild options) => options.Execute(),
-				(ActionCreate options) => options.Execute(),
-				errors => 1
-			);
+  await LocalWeb.StartAdminWeb();
 
-		}
+}
+else
+{
 
-	}
+  var arguments = Parser.Default.ParseArguments<ActionBuild, ActionCreate, ActionRun>(args).MapResult(
+    (ActionBuild options) => options.Execute(),
+    (ActionCreate options) => options.Execute(),
+    (ActionRun options) => options.Execute(), 
+    errors => 1
+  );
 
 }

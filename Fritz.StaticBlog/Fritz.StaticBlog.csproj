@@ -1,12 +1,15 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net7.0</TargetFramework>
 		<ImplicitUsings>true</ImplicitUsings>
-		<PublishSingleFile>true</PublishSingleFile>
+		<GenerateEmbeddedFilesManifest>true</GenerateEmbeddedFilesManifest>	
+        <PublishSingleFile Condition="'$(Configuration)' == 'Release'">true</PublishSingleFile>
     <SelfContained>true</SelfContained>
 		<PublishReadyToRun>true</PublishReadyToRun>
+		<PublishTrimmed>true</PublishTrimmed>
+    <Version>0.3.0</Version>
 	</PropertyGroup>
 
   <ItemGroup>
@@ -19,15 +22,25 @@
     <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
       <_Parameter1>Test.StaticBlog</_Parameter1>
     </AssemblyAttribute>
-		<Using Include="Fritz.StaticBlog.Data" />
+    <EmbeddedResource Include="adminweb\*" />
+  </ItemGroup>
+
+  <!--<ItemGroup>
+    <Compile Include="adminweb\**\*.cs" />
+  </ItemGroup>-->
+
+  <ItemGroup>
+    <EmbeddedResource Include="adminweb\Pages\**\*" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="CommandLineParser" Version="2.8.0" />
-    <PackageReference Include="Markdig" Version="0.25.0" />
-    <PackageReference Include="NUglify" Version="1.13.12" />
+    <PackageReference Include="CommandLineParser" Version="2.9.1" />
+    <PackageReference Include="Markdig" Version="0.30.4" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="7.0.1" />
+    <PackageReference Include="Microsoft.Extensions.FileProviders.Embedded" Version="6.0.10" />
+    <PackageReference Include="NUglify" Version="1.20.2" />
     <PackageReference Include="WebStoating.Markdig.Prism" Version="1.0.0" />
-    <PackageReference Include="YamlDotNet" Version="11.1.1" />
+    <PackageReference Include="YamlDotNet" Version="12.0.2" />
   </ItemGroup>
 
 </Project>

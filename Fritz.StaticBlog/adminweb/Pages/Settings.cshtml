@@ -1,0 +1,54 @@
+﻿@page
+@model Fritz.StaticBlog.adminweb.Pages.SettingsModel
+@using Fritz.StaticBlog.Data
+
+<h2>Settings</h2>
+
+<dl>
+  <dt>OutputPath</dt>
+  <dd>@Model.Configuration[WebsiteConfig.PARM_OUTPUTPATH]</dd>
+
+  <dt>WorkingDirectory</dt>
+  <dd>@Model.Configuration[WebsiteConfig.PARM_WORKINGDIRECTORY]</dd>
+</dl>
+
+@if (Model.ThisConfig == null)
+{
+
+	<div class="alert alert-danger">
+		No configuration is currently loaded.  Please specify a working folder to create a new site or resume working with an existing site.
+	</div>
+
+} else {
+	
+<h3>Site Configuration</h3>
+<dl>
+  <!-- Content of the Config stored in the properties of Model.ThisConfig -->
+
+  @foreach (var property in typeof(Config).GetProperties())
+  {
+
+    <dt>@property.Name</dt>
+    <dd>@property.GetValue(Model.ThisConfig)</dd>
+
+  }
+
+</dl>
+
+<h3>Build and Distribute</h3>
+<form method="post">
+
+	<input type="submit" name="Build" value="Build" class="btn btn-submit btn-primary" />
+
+		@if (!string.IsNullOrEmpty(Model.BuildLog))
+		{
+			
+			<pre>
+@Model.BuildLog
+			</pre>
+
+		}
+
+</form>
+
+}
