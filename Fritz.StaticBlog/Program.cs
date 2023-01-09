@@ -6,7 +6,7 @@ using CommandLine;
 if (args.Length == 0)
 {
 
-  LocalWeb.StartAdminWeb(args);
+  await LocalWeb.StartAdminWeb();
 
 }
 else

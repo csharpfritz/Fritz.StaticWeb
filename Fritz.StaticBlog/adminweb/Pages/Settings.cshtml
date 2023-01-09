@@ -12,7 +12,15 @@
   <dd>@Model.Configuration[WebsiteConfig.PARM_WORKINGDIRECTORY]</dd>
 </dl>
 
-@if (Model.ThisConfig != null) {
+@if (Model.ThisConfig == null)
+{
+
+	<div class="alert alert-danger">
+		No configuration is currently loaded.  Please specify a working folder to create a new site or resume working with an existing site.
+	</div>
+
+} else {
+	
 <h3>Site Configuration</h3>
 <dl>
   <!-- Content of the Config stored in the properties of Model.ThisConfig -->
@@ -26,4 +34,21 @@
   }
 
 </dl>
+
+<h3>Build and Distribute</h3>
+<form method="post">
+
+	<input type="submit" name="Build" value="Build" class="btn btn-submit btn-primary" />
+
+		@if (!string.IsNullOrEmpty(Model.BuildLog))
+		{
+			
+			<pre>
+@Model.BuildLog
+			</pre>
+
+		}
+
+</form>
+
 }

@@ -5,6 +5,7 @@ using Microsoft.Extensions.FileProviders;
 using System.Diagnostics;
 using System.Net;
 using System.Text.Json;
+using ILogger = Fritz.StaticBlog.Infrastructure.ILogger;
 
 public static class LocalWeb
 {
@@ -24,17 +25,20 @@ public static class LocalWeb
 			EnvironmentName = Environments.Production
 		});
 
-		var configPath = Path.Combine(_Config[WebsiteConfig.PARM_WORKINGDIRECTORY], "config.json");
-		if (System.IO.File.Exists(configPath))
+		if (_Config?.Any(c => c.Key == WebsiteConfig.PARM_WORKINGDIRECTORY) ?? false)
 		{
-			var contents = System.IO.File.ReadAllText(configPath);
-			try
+			var configPath = Path.Combine(_Config[WebsiteConfig.PARM_WORKINGDIRECTORY], "config.json");
+			if (System.IO.File.Exists(configPath))
 			{
-				var ThisConfig = JsonSerializer.Deserialize<Config>(contents);
-				_Config.SiteConfig = ThisConfig;
+				var contents = System.IO.File.ReadAllText(configPath);
+				try
+				{
+					var ThisConfig = JsonSerializer.Deserialize<Config>(contents);
+					_Config.SiteConfig = ThisConfig;
+				}
+				catch
+				{ }
 			}
-			catch
-			{ }
 		}
 
 		//builder.Services.AddSingleton<WebsiteConfig>(_Config ?? new WebsiteConfig());
@@ -84,7 +88,7 @@ public static class LocalWeb
 			config.AllowAnyHeader();
 		});
 
-		app.MapAdminSite(app.Services);
+		app.MapAdminSite(app.Services, NullLogger.Instance);
 		app.MapRazorPages();
 
 		System.Console.WriteLine("Admin Web Configured.  Navigate to http://localhost:8028 to get started");
@@ -116,7 +120,7 @@ public static class LocalWeb
 
 	}
 
-	public static IApplicationBuilder MapAdminSite(this WebApplication app, IServiceProvider services)
+	public static IApplicationBuilder MapAdminSite(this WebApplication app, IServiceProvider services, ILogger logger)
 	{
 
 		app.MapWhen(ctx => ctx.Connection.LocalPort == 8029, config =>
@@ -131,7 +135,7 @@ public static class LocalWeb
 
 			});
 
-			MapPosts(config, baseFolder);
+			MapPosts(config, baseFolder, logger);
 
 		});
 
@@ -139,7 +143,7 @@ public static class LocalWeb
 
 	}
 
-	private static void MapPosts(IApplicationBuilder config, string baseFolder)
+	private static void MapPosts(IApplicationBuilder config, string baseFolder, ILogger logger)
 	{
 
 		config.Map("/posts", mapConfig =>
@@ -157,7 +161,7 @@ public static class LocalWeb
 				var post = new FileInfo(Path.Combine(app.Configuration["WorkingDirectory"], "posts", ctx.Request.Path.Value.Substring(1)));
 				if (!post.Exists) throw new FileNotFoundException($"Post not found {post.FullName}");
 
-				var result = ActionBuild.BuildPost(post, postLayout, new Config { Theme = app.Configuration["Theme"] }, app.Configuration["WorkingDirectory"]);
+				var result = ActionBuild.BuildPost(post, postLayout, new Config { Theme = app.Configuration["Theme"] }, app.Configuration["WorkingDirectory"], logger);
 
 				ctx.Response.ContentType = "text/html";
 				await ctx.Response.WriteAsync(result.fullHTML);
@@ -177,7 +181,7 @@ public static class LocalWeb
 
 				var post = ctx.Request.Form["post"];
 
-				var result = ActionBuild.BuildPost(post, postLayout, new Config { Theme = app.Configuration["Theme"] }, app.Configuration["WorkingDirectory"]);
+				var result = ActionBuild.BuildPost(post, postLayout, new Config { Theme = app.Configuration["Theme"] }, app.Configuration["WorkingDirectory"], logger);
 
 				if (result.fullHTML.Contains("<base "))
 				{
@@ -205,7 +209,7 @@ public static class LocalWeb
 				var postLayout = File.ReadAllText(Path.Combine(app.Configuration["WorkingDirectory"], "themes", app.Configuration["Theme"], "layouts", "posts.html"));
 
 				var post = ctx.Request.Form["post"];
-				var result = ActionBuild.BuildPost(post, postLayout, new Config { Theme = app.Configuration["Theme"] }, app.Configuration["WorkingDirectory"]);
+				var result = ActionBuild.BuildPost(post, postLayout, new Config { Theme = app.Configuration["Theme"] }, app.Configuration["WorkingDirectory"], logger);
 
 				var fileName = result.fm.Title.Replace(' ', '-') + ".md";
 				File.WriteAllText(Path.Combine(app.Configuration["WorkingDirectory"], "posts", fileName), post);

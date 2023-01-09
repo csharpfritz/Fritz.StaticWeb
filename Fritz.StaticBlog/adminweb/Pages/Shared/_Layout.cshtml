@@ -27,15 +27,6 @@
 </head>
 <body>
 
-
-	@*  <aside>
-	<nav class="nav flex-column navbar-light bg-white border-bottom box-shadow">
-	<a class="nav-link text-dark" asp-area="" asp-page="/Index">Home</a>
-	<a class="nav-link text-dark" asp-area="" asp-page="/Posts">Posts</a>
-	<a class="nav-link text-dark" asp-area="" asp-page="/Settings">Settings</a>
-	</nav>
-	</aside>
-	*@
 	<main class="d-flex flex-nowrap">
 
 		<div class="d-flex flex-column flex-shrink-0 bg-light" style="width: 6rem;">
@@ -50,7 +41,12 @@
 				<li class="nav-item">
 					<a asp-page="/Posts" is-active-page class="nav-link py-1 fs-2 border-bottom rounded-0 bi bi-file-richtext-fill" aria-current="page" title="Posts" data-bs-toggle="tooltip" data-bs-placement="right"></a>
 				</li>
-				<li class="flex-grow-1 flex-grow-1 border-bottom"></li> <!-- spacer -->
+@*				<li class="nav-item">
+					<a asp-page="/Rss-Preview" is-active-page class="nav-link py-1 fs-2 border-bottom rounded-0 bi bi-rss-fill" aria-current="page" title="RSS Preview" data-bs-toggle="tooltip" data-bs-placement="right"></a>
+				</li>
+*@				
+				<li class="flex-grow-1 flex-grow-1 border-bottom"></li> @* spacer *@
+
 				<li class="nav-item bb-0">
 					<a asp-page="/Settings" is-active-page class="nav-link py-1 fs-2 border-bottom rounded-0 bi bi-gear-fill" aria-current="page" title="Settings" data-bs-toggle="tooltip" data-bs-placement="right"></a>
 				</li>

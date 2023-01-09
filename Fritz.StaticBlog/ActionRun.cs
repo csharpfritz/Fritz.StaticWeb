@@ -7,14 +7,17 @@ public class ActionRun : ICommandLineAction
 {
 
 	[Option('w', "workdir", Default = ".", Required = false, HelpText = "The directory containing the website to manage")]
-	public string ThisDirectory { get; set; }
+	public string WorkingDirectory { get; set; }
 
+	[Option('o', "output", Required = false, HelpText = "Location to write out the rendered site")]
+	public string OutputPath { get; set; }
 
-  public int Execute()
+	public int Execute()
   {
     
     LocalWeb.WebsiteConfig = new WebsiteConfig {
-        WorkingDirectory = ThisDirectory
+				OutputPath = OutputPath,
+        WorkingDirectory = WorkingDirectory
     };
 
     LocalWeb.StartAdminWeb();
