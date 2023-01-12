@@ -3,6 +3,7 @@ using Fritz.StaticBlog.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation;
 using Microsoft.Extensions.FileProviders;
 using System.Diagnostics;
+using System.IO.Abstractions;
 using System.Net;
 using System.Text.Json;
 using ILogger = Fritz.StaticBlog.Infrastructure.ILogger;
@@ -44,6 +45,8 @@ public static class LocalWeb
 		//builder.Services.AddSingleton<WebsiteConfig>(_Config ?? new WebsiteConfig());
 		builder.Configuration.AddInMemoryCollection(_Config ?? new WebsiteConfig());
 		builder.Services.AddSingleton<IFileProvider>(new EmbeddedFileProvider(typeof(LocalWeb).Assembly, "Fritz.StaticBlog.adminweb.Pages"));
+
+		builder.Services.AddSingleton<IFileSystem>(new FileSystem());
 
 		builder.Services.Configure<MvcRazorRuntimeCompilationOptions>(options =>
 		{
@@ -149,16 +152,18 @@ public static class LocalWeb
 		config.Map("/posts", mapConfig =>
 		{
 
+			var fs = mapConfig.ApplicationServices.GetRequiredService<IFileSystem>();
+
 			mapConfig.Run(async ctx =>
 			{
 
-				if (!Directory.Exists(Path.Combine(app.Configuration["WorkingDirectory"], "posts"))) throw new FileNotFoundException("Posts folder not found");
-				var postLayout = File.ReadAllText(Path.Combine(app.Configuration["WorkingDirectory"], "themes", app.Configuration["Theme"], "layouts", "posts.html"));
+				if (!fs.Directory.Exists(fs.Path.Combine(app.Configuration["WorkingDirectory"], "posts"))) throw new FileNotFoundException("Posts folder not found");
+				var postLayout = fs.File.ReadAllText(fs.Path.Combine(app.Configuration["WorkingDirectory"], "themes", app.Configuration["Theme"], "layouts", "posts.html"));
 
 				if (string.IsNullOrEmpty(ctx.Request.Path)) throw new FileNotFoundException("Post not found");
 				if (ctx.Request.Path.Value.EndsWith(".html")) throw new FileNotFoundException("Post not found");
 
-				var post = new FileInfo(Path.Combine(app.Configuration["WorkingDirectory"], "posts", ctx.Request.Path.Value.Substring(1)));
+				var post = fs.FileInfo.New(fs.Path.Combine(app.Configuration["WorkingDirectory"], "posts", ctx.Request.Path.Value.Substring(1)));
 				if (!post.Exists) throw new FileNotFoundException($"Post not found {post.FullName}");
 
 				var result = ActionBuild.BuildPost(post, postLayout, new Config { Theme = app.Configuration["Theme"] }, app.Configuration["WorkingDirectory"], logger);
@@ -173,11 +178,13 @@ public static class LocalWeb
 		config.Map("/previewpost", mapConfig =>
 		{
 
+			var fs = mapConfig.ApplicationServices.GetRequiredService<IFileSystem>();
+
 			mapConfig.Run(async ctx =>
 			{
 
-				if (!Directory.Exists(Path.Combine(app.Configuration["WorkingDirectory"], "posts"))) throw new FileNotFoundException("Posts folder not found");
-				var postLayout = File.ReadAllText(Path.Combine(app.Configuration["WorkingDirectory"], "themes", app.Configuration["Theme"], "layouts", "posts.html"));
+				if (!fs.Directory.Exists(fs.Path.Combine(app.Configuration["WorkingDirectory"], "posts"))) throw new FileNotFoundException("Posts folder not found");
+				var postLayout = fs.File.ReadAllText(fs.Path.Combine(app.Configuration["WorkingDirectory"], "themes", app.Configuration["Theme"], "layouts", "posts.html"));
 
 				var post = ctx.Request.Form["post"];
 
@@ -202,17 +209,19 @@ public static class LocalWeb
 		config.Map("/savepost", mapConfig =>
 		{
 
+			var fs = mapConfig.ApplicationServices.GetRequiredService<IFileSystem>();
+
 			mapConfig.Run(async ctx =>
 			{
 
-				if (!Directory.Exists(Path.Combine(app.Configuration["WorkingDirectory"], "posts"))) throw new FileNotFoundException("Posts folder not found");
-				var postLayout = File.ReadAllText(Path.Combine(app.Configuration["WorkingDirectory"], "themes", app.Configuration["Theme"], "layouts", "posts.html"));
+				if (!fs.Directory.Exists(fs.Path.Combine(app.Configuration["WorkingDirectory"], "posts"))) throw new FileNotFoundException("Posts folder not found");
+				var postLayout = fs.File.ReadAllText(Path.Combine(app.Configuration["WorkingDirectory"], "themes", app.Configuration["Theme"], "layouts", "posts.html"));
 
 				var post = ctx.Request.Form["post"];
 				var result = ActionBuild.BuildPost(post, postLayout, new Config { Theme = app.Configuration["Theme"] }, app.Configuration["WorkingDirectory"], logger);
 
 				var fileName = result.fm.Title.Replace(' ', '-') + ".md";
-				File.WriteAllText(Path.Combine(app.Configuration["WorkingDirectory"], "posts", fileName), post);
+				fs.File.WriteAllText(fs.Path.Combine(app.Configuration["WorkingDirectory"], "posts", fileName), post);
 
 				ctx.Response.StatusCode = (int)HttpStatusCode.OK;
 

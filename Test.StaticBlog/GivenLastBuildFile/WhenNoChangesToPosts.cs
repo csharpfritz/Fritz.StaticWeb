@@ -4,6 +4,7 @@ using Xunit;
 
 namespace Test.StaticBlog.GivenLastBuildFile
 {
+
 	public class WhenNoChangesToPosts : BaseFixture
 	{
 
@@ -51,6 +52,5 @@ namespace Test.StaticBlog.GivenLastBuildFile
 		}
 
 	}
-
 
 }

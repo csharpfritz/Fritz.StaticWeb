@@ -5,8 +5,9 @@
     <TargetFramework>net7.0</TargetFramework>
 		<ImplicitUsings>true</ImplicitUsings>
 		<GenerateEmbeddedFilesManifest>true</GenerateEmbeddedFilesManifest>	
-        <PublishSingleFile Condition="'$(Configuration)' == 'Release'">true</PublishSingleFile>
-    <SelfContained>true</SelfContained>
+    <!--<PublishSingleFile Condition="'$(Configuration)' == 'Release'">true</PublishSingleFile>-->
+    <!--<SelfContained>true</SelfContained>-->
+		<!--<PublishWithAspNetCoreTargetManifest>false</PublishWithAspNetCoreTargetManifest>-->
 		<PublishReadyToRun>true</PublishReadyToRun>
 		<PublishTrimmed>true</PublishTrimmed>
     <Version>0.3.0</Version>
@@ -39,6 +40,8 @@
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="7.0.1" />
     <PackageReference Include="Microsoft.Extensions.FileProviders.Embedded" Version="6.0.10" />
     <PackageReference Include="NUglify" Version="1.20.2" />
+    <PackageReference Include="TestableIO.System.IO.Abstractions" Version="19.1.5" />
+    <PackageReference Include="TestableIO.System.IO.Abstractions.Wrappers" Version="19.1.5" />
     <PackageReference Include="WebStoating.Markdig.Prism" Version="1.0.0" />
     <PackageReference Include="YamlDotNet" Version="12.0.2" />
   </ItemGroup>

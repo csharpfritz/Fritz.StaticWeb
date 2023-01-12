@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.IO.Abstractions;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -14,6 +15,7 @@ namespace Fritz.StaticBlog;
 public class ActionBuild : ActionBase, ICommandLineAction
 {
 	private const string ArchiveFileName = "archive.html";
+	private readonly IFileSystem _FileSystem;
 	internal List<PostData> _Posts = new();
 	internal LastBuild _LastBuild;
 
@@ -23,7 +25,14 @@ public class ActionBuild : ActionBase, ICommandLineAction
 		.UsePrism()
 		.Build();
 
-	[Option('f', "force", Default = (bool)false)]
+  public ActionBuild(IFileSystem fileSystem)
+  {
+		_FileSystem = fileSystem;
+	}
+
+	public ActionBuild() : this(new FileSystem()) { }
+
+  [Option('f', "force", Default = (bool)false)]
 	public bool Force { get; set; }
 
 	[Option('o', "output", Required = true, HelpText = "Location to write out the rendered site")]
@@ -112,7 +121,7 @@ if (!outValue) Logger.Log("pages folder is missing");
 		// Validate LastBuild configuration
 		if (outValue)
 		{
-			var exists = new FileInfo(Path.Combine(WorkingDirectory, LastBuildFilename)).Exists;
+			var exists = _FileSystem.FileInfo.New(Path.Combine(WorkingDirectory, LastBuildFilename)).Exists;
 			if (!exists)
 			{
 				Logger.Log($"LastBuild file is missing - Complete build requested");
@@ -120,7 +129,7 @@ if (!outValue) Logger.Log("pages folder is missing");
 			}
 			else
 			{
-				var file = File.OpenRead(Path.Combine(WorkingDirectory, LastBuildFilename));
+				var file = _FileSystem.File.OpenRead(Path.Combine(WorkingDirectory, LastBuildFilename));
 				_LastBuild = JsonSerializer.DeserializeAsync<LastBuild>(file).GetAwaiter().GetResult();
 				Logger.Log($"Website last built at: {_LastBuild.Timestamp} UTC");
 				file.Dispose();
@@ -134,7 +143,7 @@ if (!outValue) Logger.Log("pages folder is missing");
 	internal void BuildIndex()
 	{
 
-		if (!Force && _Posts.Any(p => p.LastUpdate > _LastBuild?.Timestamp))
+		if (!Force && _Posts.All(p => p.LastUpdate > _LastBuild?.Timestamp))
 		{
 			Logger.Log("No new posts found.  Skipping build of index");
 			return;
@@ -197,12 +206,12 @@ if (!outValue) Logger.Log("pages folder is missing");
 	internal void BuildPosts()
 	{
 
-		var postsFolder = new DirectoryInfo(Path.Combine(WorkingDirectory, "posts"));
-		var outputFolder = new DirectoryInfo(Path.Combine(WorkingDirectory, OutputPath, "posts"));
+		var postsFolder = _FileSystem.DirectoryInfo.New(_FileSystem.Path.Combine(WorkingDirectory, "posts"));
+		var outputFolder = _FileSystem.DirectoryInfo.New(_FileSystem.Path.Combine(WorkingDirectory, OutputPath, "posts"));
 		if (!outputFolder.Exists) outputFolder.Create();
 
 		// Load layout for post
-		var layoutText = File.ReadAllText(Path.Combine(WorkingDirectory, "themes", Config.Theme, "layouts", "posts.html"));
+		var layoutText = _FileSystem.File.ReadAllText(_FileSystem.Path.Combine(WorkingDirectory, "themes", Config.Theme, "layouts", "posts.html"));
 
 		foreach (var post in postsFolder.GetFiles("*.md"))
 		{
@@ -215,10 +224,10 @@ if (!outValue) Logger.Log("pages folder is missing");
 			string outputHTML = MinifyOutput ? Minify(html) : html;
 
 			// Identify the output file name
-			var baseName = Path.Combine(post.Name[0..^3] + ".html");
-			var fileName = Path.Combine(outputFolder.FullName, baseName);
+			var baseName = _FileSystem.Path.Combine(post.Name[0..^3] + ".html");
+			var fileName = _FileSystem.Path.Combine(outputFolder.FullName, baseName);
 
-			File.WriteAllText(fileName, outputHTML);
+			_FileSystem.File.WriteAllText(fileName, outputHTML);
 
 			_Posts.Add(new PostData
 			{
@@ -235,14 +244,14 @@ if (!outValue) Logger.Log("pages folder is missing");
 
 	internal static (string fullHTML, string postHTML, Frontmatter fm)
 		BuildPost(
-			FileInfo postFile,
+			IFileInfo postFile,
 			string layoutText,
 			Config config,
 			string workingDirectory,
 			ILogger logger)
 	{
 
-		var txt = File.ReadAllText(postFile.FullName, Encoding.UTF8);
+		var txt = postFile.FileSystem.File.ReadAllText(postFile.FullName, Encoding.UTF8);
 		return BuildPost(txt, layoutText, config, workingDirectory, logger);
 
 	}

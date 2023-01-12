@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.IO.Abstractions.TestingHelpers;
 using System.Text.Json;
 using Fritz.StaticBlog;
 using Fritz.StaticBlog.Data;
@@ -12,29 +13,40 @@ namespace Test.StaticBlog.GivenLastBuildFile
 		protected ActionBuild _sut { get; private set; }
 		protected DateTime _LastBuildDate;
 
+		protected MockFileSystem FileSystem { get; private set; }
+
 		public override void Initialize()
 		{
-				
+		
 			base.Initialize();
 
-			_sut = new ActionBuild
+			_LastBuildDate = DateTime.UtcNow.AddSeconds(-5);
+			string lastBuildFilename = $".lastbuild.{Guid.NewGuid()}.json";
+			
+			FileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
+			{
+				{ Path.Combine(WorkingDirectory.FullName, lastBuildFilename),
+					$$"""
+						{
+							"Timestamp":  "{{_LastBuildDate.ToString("o")}}"
+						}
+					""" 
+				}
+			});
+				
+
+			_sut = new ActionBuild(FileSystem)
 			{
 				Force = false,
 				OutputPath = OutputFolder.FullName,
 				ThisDirectory = WorkingDirectory.FullName,
-				LastBuildFilename = $".lastbuild.{Guid.NewGuid()}.json",
+				LastBuildFilename = lastBuildFilename,
 				Config = new Config
 				{
 					Theme = "kliptok",
 					Title = "The Unit Test Website"
 				}
 			};
-
-			_LastBuildDate = DateTime.UtcNow.AddSeconds(-5);
-			var lastBuildFile = File.OpenWrite(Path.Combine(WorkingDirectory.FullName, _sut.LastBuildFilename));
-			JsonSerializer.SerializeAsync<LastBuild>(lastBuildFile, new LastBuild { Timestamp = _LastBuildDate }).GetAwaiter().GetResult();
-			lastBuildFile.Flush();
-			lastBuildFile.Close();
 
 		}
  
