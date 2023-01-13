@@ -1,20 +1,27 @@
 using Xunit;
 
-namespace Test.StaticBlog.GivenValidActionBuild
+namespace Test.StaticBlog.GivenValidActionBuild;
+
+
+public class WhenValidating : BaseFixture
 {
+	private readonly XUnitLogger _Logger;
 
-	public class WhenValidating : BaseFixture {
+	public WhenValidating(ITestOutputHelper output)
+	{
+		_Logger = new XUnitLogger(output);
+	}
 
-		[Fact]
-		public void ShouldReturnValid() {
+	[Fact]
+	public void ShouldReturnValid()
+	{
 
-			var outValue = _sut.Validate();			
+		_sut.Logger = _Logger;
+		var outValue = _sut.Validate();
 
-			Assert.True(outValue);
-
-		}
-
+		Assert.True(outValue);
 
 	}
+
 
 }

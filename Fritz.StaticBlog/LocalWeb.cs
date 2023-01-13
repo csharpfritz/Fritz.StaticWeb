@@ -166,7 +166,7 @@ public static class LocalWeb
 				var post = fs.FileInfo.New(fs.Path.Combine(app.Configuration["WorkingDirectory"], "posts", ctx.Request.Path.Value.Substring(1)));
 				if (!post.Exists) throw new FileNotFoundException($"Post not found {post.FullName}");
 
-				var result = ActionBuild.BuildPost(post, postLayout, new Config { Theme = app.Configuration["Theme"] }, app.Configuration["WorkingDirectory"], logger);
+				var result = ActionBuild.BuildPost(post, postLayout, new Config { Theme = app.Configuration["Theme"] }, fs.DirectoryInfo.New(app.Configuration["WorkingDirectory"]), logger);
 
 				ctx.Response.ContentType = "text/html";
 				await ctx.Response.WriteAsync(result.fullHTML);
@@ -188,7 +188,7 @@ public static class LocalWeb
 
 				var post = ctx.Request.Form["post"];
 
-				var result = ActionBuild.BuildPost(post, postLayout, new Config { Theme = app.Configuration["Theme"] }, app.Configuration["WorkingDirectory"], logger);
+				var result = ActionBuild.BuildPost(post, postLayout, new Config { Theme = app.Configuration["Theme"] }, fs.DirectoryInfo.New(app.Configuration["WorkingDirectory"]), logger);
 
 				if (result.fullHTML.Contains("<base "))
 				{
@@ -218,7 +218,7 @@ public static class LocalWeb
 				var postLayout = fs.File.ReadAllText(Path.Combine(app.Configuration["WorkingDirectory"], "themes", app.Configuration["Theme"], "layouts", "posts.html"));
 
 				var post = ctx.Request.Form["post"];
-				var result = ActionBuild.BuildPost(post, postLayout, new Config { Theme = app.Configuration["Theme"] }, app.Configuration["WorkingDirectory"], logger);
+				var result = ActionBuild.BuildPost(post, postLayout, new Config { Theme = app.Configuration["Theme"] }, fs.DirectoryInfo.New(app.Configuration["WorkingDirectory"]), logger);
 
 				var fileName = result.fm.Title.Replace(' ', '-') + ".md";
 				fs.File.WriteAllText(fs.Path.Combine(app.Configuration["WorkingDirectory"], "posts", fileName), post);

@@ -13,7 +13,6 @@ namespace Fritz.StaticBlog
 	[Verb("create", HelpText = "Create a page or post for the site")]
 	public class ActionCreate : ActionBase, ICommandLineAction
 	{
-		private readonly IFileSystem _FileSystem;
 
 		[Value(0, Default = "post", HelpText = "The type of content to create.  Valid values: post, page")]
 		public string ContentType { get; set; }
@@ -30,10 +29,7 @@ namespace Fritz.StaticBlog
 			set { base.WorkingDirectory = value; }
 		}
 
-    public ActionCreate(IFileSystem fileSystem)
-    {
-			_FileSystem = fileSystem;
-		}
+    public ActionCreate(IFileSystem fileSystem) : base(fileSystem) { }
 
 		public ActionCreate() : this(new FileSystem()) { }
 

@@ -15,7 +15,6 @@ namespace Fritz.StaticBlog;
 public class ActionBuild : ActionBase, ICommandLineAction
 {
 	private const string ArchiveFileName = "archive.html";
-	private readonly IFileSystem _FileSystem;
 	internal List<PostData> _Posts = new();
 	internal LastBuild _LastBuild;
 
@@ -25,10 +24,7 @@ public class ActionBuild : ActionBase, ICommandLineAction
 		.UsePrism()
 		.Build();
 
-  public ActionBuild(IFileSystem fileSystem)
-  {
-		_FileSystem = fileSystem;
-	}
+	public ActionBuild(IFileSystem fileSystem) : base(fileSystem) { }
 
 	public ActionBuild() : this(new FileSystem()) { }
 
@@ -88,19 +84,19 @@ public class ActionBuild : ActionBase, ICommandLineAction
 	public override bool Validate()
 	{
 
-		var outputDir = new DirectoryInfo(Path.Combine(WorkingDirectory, OutputPath));
+		var outputDir = _FileSystem.DirectoryInfo.New(_FileSystem.Path.Combine(WorkingDirectory, OutputPath));
 		var outValue = outputDir.Exists;
 
 		if (!outValue) Logger.Log($"Output folder '{outputDir.FullName}' does not exist");
 		if (outValue)
 		{
-			outValue = new DirectoryInfo(Path.Combine(WorkingDirectory, "themes")).Exists;
+			outValue = _FileSystem.DirectoryInfo.New(_FileSystem.Path.Combine(WorkingDirectory, "themes")).Exists;
 			if (!outValue) Logger.Log("themes folder is missing");
 		}
 
 		if (outValue)
 		{
-			outValue = new DirectoryInfo(Path.Combine(WorkingDirectory, "posts")).Exists;
+			outValue = _FileSystem.DirectoryInfo.New(_FileSystem.Path.Combine(WorkingDirectory, "posts")).Exists;
 			if (!outValue) Logger.Log("posts folder is missing");
 		}
 
@@ -114,7 +110,7 @@ if (!outValue) Logger.Log("pages folder is missing");
 
 		if (outValue)
 		{
-			outValue = new FileInfo(Path.Combine(WorkingDirectory, "config.json")).Exists;
+			outValue = _FileSystem.FileInfo.New(_FileSystem.Path.Combine(WorkingDirectory, "config.json")).Exists;
 			if (!outValue) Logger.Log($"config.json file is missing");
 		}
 
@@ -160,7 +156,7 @@ if (!outValue) Logger.Log("pages folder is missing");
 			outContent = outContent.Replace("</head>", $"""<link rel="alternate" type="application/rss+xml" title="{Config.Title}" href="rss.xml" /></head>""");
 		}
 
-		outContent = ApplyMacros(outContent, WorkingDirectory, Config, Logger);
+		outContent = ApplyMacros(outContent, _FileSystem.DirectoryInfo.New(WorkingDirectory), Config, Logger);
 
 		// Set the title from config
 		outContent = outContent.Replace("{{ Title }}", Config.Title);
@@ -219,7 +215,7 @@ if (!outValue) Logger.Log("pages folder is missing");
 			// Skip if the post has not been updated since the last build
 			if (!Force && post.LastWriteTimeUtc < (_LastBuild?.Timestamp ?? DateTime.MinValue)) continue;
 
-			(string html, string mdHTML, Frontmatter fm) = BuildPost(post, layoutText, Config, WorkingDirectory, Logger);
+			(string html, string mdHTML, Frontmatter fm) = BuildPost(post, layoutText, Config, _FileSystem.DirectoryInfo.New(WorkingDirectory), Logger);
 
 			string outputHTML = MinifyOutput ? Minify(html) : html;
 
@@ -247,7 +243,7 @@ if (!outValue) Logger.Log("pages folder is missing");
 			IFileInfo postFile,
 			string layoutText,
 			Config config,
-			string workingDirectory,
+			IDirectoryInfo workingDirectory,
 			ILogger logger)
 	{
 
@@ -261,7 +257,7 @@ if (!outValue) Logger.Log("pages folder is missing");
 			string mdContents,
 			string layoutText,
 			Config config,
-			string workingDirectory,
+			IDirectoryInfo workingDirectory,
 			ILogger logger)
 	{
 
@@ -367,9 +363,9 @@ if (!outValue) Logger.Log("pages folder is missing");
 		var rssFooter = "\n</channel>\n</rss>";
 
 		var rssFilename = _FileSystem.Path.Combine(WorkingDirectory, OutputPath, "rss.xml");
-		_FileSystem.File.Delete(rssFilename);
 
-		using var rssFile = _FileSystem.File.OpenWrite(rssFilename);
+		using var rssFile = _FileSystem.File.Create(rssFilename);
+		Logger.Log($"Writing to RSS file at: {rssFile.Name}");
 		rssFile.Write(Encoding.UTF8.GetBytes(rssHeader));
 		rssFile.Write(Encoding.UTF8.GetBytes(rssHeader2));
 
@@ -391,20 +387,20 @@ if (!outValue) Logger.Log("pages folder is missing");
 	{
 
 
-		var layoutInfo = new FileInfo(Path.Combine(WorkingDirectory, "themes", Config.Theme, "layouts", ArchiveFileName));
+		var layoutInfo = _FileSystem.FileInfo.New(_FileSystem.Path.Combine(WorkingDirectory, "themes", Config.Theme, "layouts", ArchiveFileName));
 		if (!layoutInfo.Exists)
 		{
 			Logger.Log("Layout for archive page missing - skipping");
 			return;
 		}
 
-		using var archiveFile = File.CreateText(Path.Combine(WorkingDirectory, OutputPath, ArchiveFileName));
-		using var archiveLayout = File.OpenText(Path.Combine(WorkingDirectory, "themes", Config.Theme, "layouts", ArchiveFileName));
+		using var archiveFile = _FileSystem.File.CreateText(_FileSystem.Path.Combine(WorkingDirectory, OutputPath, ArchiveFileName));
+		using var archiveLayout = _FileSystem.File.OpenText(_FileSystem.Path.Combine(WorkingDirectory, "themes", Config.Theme, "layouts", ArchiveFileName));
 
 		var outContent = archiveLayout.ReadToEnd();
 
 		// Set the title from config
-		outContent = ApplyMacros(outContent, WorkingDirectory, Config, Logger);
+		outContent = ApplyMacros(outContent, _FileSystem.DirectoryInfo.New(WorkingDirectory), Config, Logger);
 		outContent = outContent.Replace("{{ Title }}", Config.Title);
 
 		var orderedPosts = _Posts.Where(p => !p.Frontmatter.Draft).OrderByDescending(p => p.Frontmatter.PublishDate);
@@ -518,7 +514,7 @@ if (!outValue) Logger.Log("pages folder is missing");
 
 	}
 
-	private static string ApplyMacros(string initialHTML, string workingDirectory, Config config, ILogger logger)
+	private static string ApplyMacros(string initialHTML, IDirectoryInfo workingDirectory, Config config, ILogger logger)
 	{
 
 		var outHTML = initialHTML;
@@ -531,7 +527,7 @@ if (!outValue) Logger.Log("pages folder is missing");
 
 	}
 
-	private static string HandleIncludes(string outHTML, string workingDirectory, Config config, ILogger logger)
+	private static string HandleIncludes(string outHTML, IDirectoryInfo workingDirectory, Config config, ILogger logger)
 	{
 
 		var includeRegex = new Regex(@"\{\{ Include:([a-zA-Z0-9\-_\.]+) \}\}");
@@ -541,15 +537,15 @@ if (!outValue) Logger.Log("pages folder is missing");
 		{
 
 			var includeFile = match.Groups[1].Value;
-			var includePath = Path.Combine(workingDirectory, "themes", config.Theme, "includes", $"{includeFile}.html");
-			if (!File.Exists(includePath))
+			var includePath = workingDirectory.FileSystem.Path.Combine(workingDirectory.FullName, "themes", config.Theme, "includes", $"{includeFile}.html");
+			if (!workingDirectory.FileSystem.File.Exists(includePath))
 			{
 				logger.Log($"Include file {includePath} not found - skipping");
 				workingHTML = workingHTML.Replace(match.Value, string.Empty);
 				continue;
 			}
 
-			var includeContent = File.ReadAllText(includePath);
+			var includeContent = workingDirectory.FileSystem.File.ReadAllText(includePath);
 			workingHTML = workingHTML.Replace(match.Value, includeContent);
 
 		}

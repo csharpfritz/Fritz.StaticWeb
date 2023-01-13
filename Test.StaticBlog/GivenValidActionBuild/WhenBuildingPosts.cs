@@ -2,7 +2,24 @@ namespace Test.StaticBlog.GivenValidActionBuild;
 
 public class WhenBuildingPosts : BaseFixture {
 
-	[Fact]
+  public WhenBuildingPosts(ITestOutputHelper helper)
+  {
+		_sut.Logger = new XUnitLogger(helper);
+
+		FileSystem.AddFile(FileSystem.Path.Combine(PostsFolder.FullName, "1-FirstPost.md"), new MockFileData("""
+		---
+		draft: true
+		title: First post!
+		author: Testy McTestFace
+		publishdate: 2021-05-22 14:22
+		---
+
+		This is my first post
+		"""));
+
+  }
+
+  [Fact]
 	public void ShouldNotThrowError() {
 
 		_sut.BuildPosts();
@@ -14,22 +31,23 @@ public class WhenBuildingPosts : BaseFixture {
 
 		// arrange
 		// Clear the folder to ensure this file is written
-		if (OutputPostsFolder.Exists) {
-			var files = OutputPostsFolder.GetFiles();
-			foreach (var f in files)
-			{
-					f.Delete();
-			}
-		}
+		//if (OutputPostsFolder.Exists) {
+		//	var files = OutputPostsFolder.GetFiles();
+		//	foreach (var f in files)
+		//	{
+		//			f.Delete();
+		//	}
+		//}
 
 		// act
 		_sut.BuildPosts();
 
 		// assert
+		OutputPostsFolder.Refresh();
 		Assert.NotEmpty(OutputPostsFolder.GetFiles());
 
 		var inspectFile = OutputPostsFolder.GetFiles("*.html").First();
-		var html = File.ReadAllText(inspectFile.FullName);
+		var html = FileSystem.File.ReadAllText(inspectFile.FullName);
 		Assert.DoesNotContain("draft: true", html);
 
 	}
@@ -42,7 +60,7 @@ public class WhenBuildingPosts : BaseFixture {
 
 		// assert
 		var inspectFile = OutputPostsFolder.GetFiles("*.html").First();
-		var html = File.ReadAllText(inspectFile.FullName);
+		var html = FileSystem.File.ReadAllText(inspectFile.FullName);
 		Assert.DoesNotContain("draft: true", html);
 
 	}
@@ -55,7 +73,7 @@ public class WhenBuildingPosts : BaseFixture {
 
 		// assert
 		var inspectFile = OutputPostsFolder.GetFiles("*.html").First();
-		var html = File.ReadAllText(inspectFile.FullName);
+		var html = FileSystem.File.ReadAllText(inspectFile.FullName);
 		Assert.Contains("<html>", html);
 		Assert.Contains("<body>", html);
 
@@ -71,7 +89,7 @@ public class WhenBuildingPosts : BaseFixture {
 
     // assert
     var inspectFile = OutputPostsFolder.GetFiles("*.html").OrderBy(f => f.Name).First();
-    var html = File.ReadAllText(inspectFile.FullName);
+    var html = FileSystem.File.ReadAllText(inspectFile.FullName);
     Assert.Contains("<title>First post!</title>", html);
 
 
@@ -86,7 +104,7 @@ public class WhenBuildingPosts : BaseFixture {
 
     // assert
     var inspectFile = OutputPostsFolder.GetFiles("*.html").OrderBy(f => f.Name).First();
-    var html = File.ReadAllText(inspectFile.FullName);
+    var html = FileSystem.File.ReadAllText(inspectFile.FullName);
     Assert.Contains("<h3>Author: Testy McTestFace</h3>", html);
 
   }
@@ -124,7 +142,7 @@ public class WhenBuildingPosts : BaseFixture {
 
 		// assert
 		var inspectFile = OutputPostsFolder.GetFiles("*.html").OrderBy(f => f.Name).First();
-		var html = File.ReadAllText(inspectFile.FullName);
+		var html = FileSystem.File.ReadAllText(inspectFile.FullName);
 		Assert.DoesNotContain("{{ CurrentYear }}", html);
 		Assert.Contains($"<span>Year: {DateTime.Now.Year}</span>", html);
 

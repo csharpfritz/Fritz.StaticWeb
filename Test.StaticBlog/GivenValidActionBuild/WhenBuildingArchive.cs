@@ -6,10 +6,12 @@ public class WhenBuildingArchive : BaseFixture
   private const string ArchiveFileName = "archive.html";
 
   public WhenBuildingArchive(ITestOutputHelper output) : base()
-	{ 
+	{
+
+		_sut.Logger = new XUnitLogger(output);
 
 		// Reset by deleting the index file
-		File.Delete(Path.Combine(OutputFolder.FullName, ArchiveFileName));
+		//File.Delete(Path.Combine(OutputFolder.FullName, ArchiveFileName));
 
 		_sut._Posts.Add(new PostData {
 			Filename = "first_post.html",
@@ -27,12 +29,12 @@ public class WhenBuildingArchive : BaseFixture
 
 		Output = output;
 		Output.WriteLine(OutputFolder.FullName);
-		Output.WriteLine($"Archive file location: {Path.Combine(OutputFolder?.FullName, ArchiveFileName)}");
+		Output.WriteLine($"Archive file location: {FileSystem.Path.Combine(OutputFolder?.FullName, ArchiveFileName)}");
 		_ArchiveFile = OutputFolder.GetFiles(ArchiveFileName).FirstOrDefault();
     
 	}
 
-  private FileInfo _ArchiveFile;
+  private IFileInfo _ArchiveFile;
 
   public ITestOutputHelper Output { get; }
 
@@ -48,7 +50,7 @@ public class WhenBuildingArchive : BaseFixture
   public void ShouldApplyMacros()
   {
 
-    var html = File.ReadAllText(_ArchiveFile.FullName);
+    var html = FileSystem.File.ReadAllText(_ArchiveFile.FullName);
     Assert.DoesNotContain("{{ CurrentYear }}", html);
     Assert.Contains($"<span>Year: {DateTime.Now.Year}</span>", html);
 

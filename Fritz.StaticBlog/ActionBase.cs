@@ -1,9 +1,19 @@
-﻿using System.Text.Json;
+﻿using System.IO.Abstractions;
+using System.Text.Json;
 
 namespace Fritz.StaticBlog;
 
 public abstract class ActionBase
 {
+	
+	protected readonly IFileSystem _FileSystem;
+
+	protected ActionBase(IFileSystem fileSystem)
+	{
+
+		_FileSystem = fileSystem;
+	
+	}
 
 	internal Config Config { get; set; }
 
@@ -20,7 +30,7 @@ public abstract class ActionBase
 			// Set default WorkingDirectory
 			if (string.IsNullOrEmpty(WorkingDirectory)) WorkingDirectory = ".";
 
-			var rdr = File.OpenRead(Path.Combine(WorkingDirectory, "config.json"));
+			var rdr = _FileSystem.File.OpenRead(_FileSystem.Path.Combine(WorkingDirectory, "config.json"));
 			var json = new StreamReader(rdr).ReadToEnd();
 			this.Config = JsonSerializer.Deserialize<Config>(json);
 		}
@@ -30,7 +40,7 @@ public abstract class ActionBase
 			return false;
 		}
 
-		if (!Directory.Exists(Path.Combine(WorkingDirectory, "themes", Config.Theme)))
+		if (!_FileSystem.Directory.Exists(_FileSystem.Path.Combine(WorkingDirectory, "themes", Config.Theme)))
 		{
 			System.Console.WriteLine($"Theme folder '{Config.Theme}' does not exist");
 			return false;

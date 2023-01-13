@@ -47,6 +47,8 @@ namespace Test.StaticBlog.GivenValidActionCreate
 			var destFolder = FileSystem.Path.Combine(sut.ThisDirectory, sut.OutputPath, "posts");
 			FileSystem.AddDirectory(destFolder);
 			if (!FileSystem.Directory.Exists(destFolder)) FileSystem.Directory.CreateDirectory(destFolder);
+			FileSystem.AddFile(FileSystem.Path.Combine(sut.ThisDirectory, "config.json"), new MockFileData("""{ "theme": "test" }"""));
+			FileSystem.AddDirectory(FileSystem.Path.Combine(sut.ThisDirectory, "themes", "test"));
 
 			Output = output;
 		}
@@ -58,9 +60,12 @@ namespace Test.StaticBlog.GivenValidActionCreate
 		{
 
 			sut.Filename = "test";
-			sut.Execute();
+			var outValue = sut.Execute();
 
-			var outFile = FileSystem.FileInfo.New(FileSystem.Path.Combine(sut.ThisDirectory, sut.OutputPath, "posts", sut.Filename + ".md"));
+			Assert.Equal(0, outValue);
+
+			var workingFolder = FileSystem.DirectoryInfo.New(sut.ThisDirectory).FullName;
+			var outFile = FileSystem.FileInfo.New(FileSystem.Path.Combine(workingFolder, sut.OutputPath, "posts", sut.Filename + ".md"));
 			Output.WriteLine($"File should be written to: {outFile.FullName}");
 			Assert.True(outFile.Exists);
 

@@ -38,6 +38,13 @@ namespace Test.StaticBlog.GivenLastBuildFile
 			FileSystem.AddFile(
 				FileSystem.Path.Combine(WorkingDirectory.FullName, "themes", "kliptok", "layouts", "index.html"),
 				IndexLayout);
+			FileSystem.AddFile(
+				FileSystem.Path.Combine(WorkingDirectory.FullName, "config.json"),
+				new MockFileData("""{}"""));
+			FileSystem.Directory.CreateDirectory(OutputFolder.FullName);
+			FileSystem.Directory.CreateDirectory(FileSystem.Path.Combine(WorkingDirectory.FullName, "posts"));
+			FileSystem.AddFile(FileSystem.Path.Combine(WorkingDirectory.FullName, "themes", "kliptok", "includes", "sample.html"), new MockFileData("This is an include"));
+			FileSystem.AddFile(FileSystem.Path.Combine(WorkingDirectory.FullName, "themes", "kliptok", "includes", "sampleWithMacro.html"), new MockFileData("This is the current year: {{ CurrentYear }}"));
 
 
 			_sut = new ActionBuild(FileSystem)

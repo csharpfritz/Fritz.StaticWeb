@@ -36,6 +36,8 @@ namespace Test.StaticBlog.GivenLastBuildFile
 			base.FileSystem.AddFile(
 				FileSystem.Path.Combine(postsFolder, "newPost.md"), newFile
 			);
+			FileSystem.AddFile(FileSystem.Path.Combine(WorkingDirectory.FullName, "themes", "kliptok", "includes", "sample.html"), new MockFileData("This is an include"));
+			FileSystem.AddFile(FileSystem.Path.Combine(WorkingDirectory.FullName, "themes", "kliptok", "includes", "sampleWithMacro.html"), new MockFileData("This is the current year: {{ CurrentYear }}"));
 
 			OutputPostsFolder = FileSystem.DirectoryInfo.New(FileSystem.Path.Combine(base.OutputFolder.FullName, "posts"));
 			OutputFolder = FileSystem.DirectoryInfo.New(base.OutputFolder.FullName);
