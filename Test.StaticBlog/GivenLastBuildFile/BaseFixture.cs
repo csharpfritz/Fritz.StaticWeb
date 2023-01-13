@@ -35,7 +35,10 @@ namespace Test.StaticBlog.GivenLastBuildFile
 			FileSystem.AddFile(
 				FileSystem.Path.Combine(WorkingDirectory.FullName, "themes", "kliptok", "layouts", "posts.html"), 
 				PostLayout);
-				
+			FileSystem.AddFile(
+				FileSystem.Path.Combine(WorkingDirectory.FullName, "themes", "kliptok", "layouts", "index.html"),
+				IndexLayout);
+
 
 			_sut = new ActionBuild(FileSystem)
 			{
@@ -77,7 +80,32 @@ namespace Test.StaticBlog.GivenLastBuildFile
 			}
 		}
 
+		public MockFileData IndexLayout
+		{
+			get
+			{
+				return new MockFileData(
+				"""
+				<html>
+					<head>
+						<title>{{ Title }}</title>
+						<!-- Test Layout -->
+					</head>
+					<body>
+						{{ Body }}
 
+						<span>Year: {{ CurrentYear }}</span>
+						<a href="{{ ArchiveURL }}">All posts</a>
+
+						<footer>{{ Include:sample }}</footer>
+
+						{{ Include:sampleWithMacro }}
+
+					</body>
+				</html>
+				""");
+			}
+		}
 
 		public virtual void Dispose()
 		{

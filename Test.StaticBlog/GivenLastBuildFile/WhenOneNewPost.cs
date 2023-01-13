@@ -1,7 +1,12 @@
-﻿namespace Test.StaticBlog.GivenLastBuildFile
+﻿using System.IO.Abstractions;
+
+namespace Test.StaticBlog.GivenLastBuildFile
 {
 	public class WhenOneNewPost : BaseFixture
 	{
+
+		new IDirectoryInfo OutputFolder { get; set; }
+		new IDirectoryInfo OutputPostsFolder { get; set; }
 
 		public override void Initialize()
 		{
@@ -10,18 +15,30 @@
 
 			var postsFolder = FileSystem.Path.Combine(WorkingDirectory.FullName, "posts");
 
-			var oldFile = new System.IO.Abstractions.TestingHelpers.MockFileData("# Old file content");
+			var oldFile = new System.IO.Abstractions.TestingHelpers.MockFileData("""
+				---
+				draft: false
+				---
+				# Old file content
+				""");
 			oldFile.LastWriteTime = DateTime.UtcNow.AddMinutes(-5);
 			base.FileSystem.AddFile(
 				FileSystem.Path.Combine(postsFolder, "oldPost.md"), oldFile
 			);
 
-			var newFile = new System.IO.Abstractions.TestingHelpers.MockFileData("# New file content");
+			var newFile = new System.IO.Abstractions.TestingHelpers.MockFileData("""
+			---
+			draft: false
+			---
+			# New file content
+			""");
 			newFile.LastWriteTime = DateTime.UtcNow;
 			base.FileSystem.AddFile(
 				FileSystem.Path.Combine(postsFolder, "newPost.md"), newFile
 			);
 
+			OutputPostsFolder = FileSystem.DirectoryInfo.New(FileSystem.Path.Combine(base.OutputFolder.FullName, "posts"));
+			OutputFolder = FileSystem.DirectoryInfo.New(base.OutputFolder.FullName);
 
 		}
 
@@ -38,11 +55,11 @@
 			_sut.BuildPosts();
 
 			// assert
-			Assert.Empty(base.OutputPostsFolder.GetFiles());
+			Assert.Single(OutputPostsFolder.GetFiles());
 
 		}
 
-		[Fact(Skip = "Test not finished")]
+		[Fact()]
 		public void ShouldRebuildIndex()
 		{
 
@@ -56,7 +73,7 @@
 			_sut.BuildIndex();
 
 			// assert
-			Assert.Empty(base.OutputFolder.GetFiles("index.html"));
+			Assert.NotEmpty(OutputFolder.GetFiles("index.html"));
 
 		}
 

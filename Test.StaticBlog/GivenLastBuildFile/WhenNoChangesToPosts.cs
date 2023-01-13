@@ -36,7 +36,8 @@ namespace Test.StaticBlog.GivenLastBuildFile
 			_sut.BuildPosts();
 
 			// assert
-			Assert.Empty(base.OutputPostsFolder.GetFiles());
+			var outputFolder = FileSystem.DirectoryInfo.New(FileSystem.Path.Combine(OutputFolder.FullName, "posts"));
+			Assert.Empty(outputFolder.GetFiles());
 
 		}
 
@@ -61,7 +62,7 @@ namespace Test.StaticBlog.GivenLastBuildFile
 		public override void Dispose()
 		{
 
-			Directory.Delete(_sut.OutputPath, true);
+			//Directory.Delete(_sut.OutputPath, true);
 
 			base.Dispose();
 		}

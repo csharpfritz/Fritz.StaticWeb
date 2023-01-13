@@ -143,14 +143,14 @@ if (!outValue) Logger.Log("pages folder is missing");
 	internal void BuildIndex()
 	{
 
-		if (!Force && _Posts.All(p => p.LastUpdate > _LastBuild?.Timestamp))
+		if (!Force && _Posts.All(p => p.LastUpdate <= _LastBuild?.Timestamp))
 		{
 			Logger.Log("No new posts found.  Skipping build of index");
 			return;
 		}
 
-		using var indexFile = File.CreateText(Path.Combine(WorkingDirectory, OutputPath, "index.html"));
-		using var indexLayout = File.OpenText(Path.Combine(WorkingDirectory, "themes", Config.Theme, "layouts", "index.html"));
+		using var indexFile = _FileSystem.File.CreateText(_FileSystem.Path.Combine(WorkingDirectory, OutputPath, "index.html"));
+		using var indexLayout = _FileSystem.File.OpenText(_FileSystem.Path.Combine(WorkingDirectory, "themes", Config.Theme, "layouts", "index.html"));
 
 		var outContent = indexLayout.ReadToEnd();
 
