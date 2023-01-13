@@ -14,7 +14,6 @@ namespace Test.StaticBlog.GivenLastBuildFile
 		protected DateTime _LastBuildDate;
 
 		protected MockFileSystem FileSystem { get; private set; }
-
 		public override void Initialize()
 		{
 		
@@ -33,6 +32,9 @@ namespace Test.StaticBlog.GivenLastBuildFile
 					""" 
 				}
 			});
+			FileSystem.AddFile(
+				FileSystem.Path.Combine(WorkingDirectory.FullName, "themes", "kliptok", "layouts", "posts.html"), 
+				PostLayout);
 				
 
 			_sut = new ActionBuild(FileSystem)
@@ -49,7 +51,34 @@ namespace Test.StaticBlog.GivenLastBuildFile
 			};
 
 		}
- 
+
+		public MockFileData PostLayout { 
+			get
+			{
+				return new MockFileData(
+				"""
+				<html>
+					<head>
+						<title>{{ Title }}</title>
+					</head>
+					<body>
+
+						<h1>{{ Title }}</h1>
+						<h3>Author: {{ Author }}</h3>
+						<h5>Published: {{ PublishDate }}</h5>
+
+						{{ Body }}
+
+						<span>Year: {{ CurrentYear }}</span>
+
+					</body>
+				</html>
+				""");
+			}
+		}
+
+
+
 		public virtual void Dispose()
 		{
 

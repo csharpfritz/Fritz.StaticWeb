@@ -8,6 +8,21 @@ namespace Test.StaticBlog.GivenLastBuildFile
 	public class WhenNoChangesToPosts : BaseFixture
 	{
 
+		public override void Initialize()
+		{
+
+			base.Initialize();
+
+			var postsFolder = FileSystem.Path.Combine(WorkingDirectory.FullName, "posts");
+
+			var oldFile = new System.IO.Abstractions.TestingHelpers.MockFileData("# Old file content");
+			oldFile.LastWriteTime = DateTime.UtcNow.AddMinutes(-5);
+			base.FileSystem.AddFile(
+				FileSystem.Path.Combine(postsFolder, "oldPost.md"), oldFile
+			);
+
+		}
+
 		[Fact]
 		public void ShouldNotRebuildPosts()
 		{
