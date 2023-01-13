@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Abstractions.TestingHelpers;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -17,6 +18,8 @@ namespace Test.StaticBlog.GivenValidActionCreate
 
 		internal ActionCreate sut;
 
+		MockFileSystem FileSystem { get; }
+
 		public WhenCreatingPost(ITestOutputHelper output)
 		{
 
@@ -27,7 +30,9 @@ namespace Test.StaticBlog.GivenValidActionCreate
 
 			string targetFolderName = GetType().Name.ToLowerInvariant();
 
-			sut = new ActionCreate
+			FileSystem = new MockFileSystem();
+
+			sut = new ActionCreate(FileSystem)
 			{
 				Config = new Config
 				{
@@ -39,8 +44,9 @@ namespace Test.StaticBlog.GivenValidActionCreate
 				ThisDirectory = workingDirectory
 			};
 
-			var destFolder = Path.Combine(sut.ThisDirectory, sut.OutputPath, "posts");
-			if (!Directory.Exists(destFolder)) Directory.CreateDirectory(destFolder);
+			var destFolder = FileSystem.Path.Combine(sut.ThisDirectory, sut.OutputPath, "posts");
+			FileSystem.AddDirectory(destFolder);
+			if (!FileSystem.Directory.Exists(destFolder)) FileSystem.Directory.CreateDirectory(destFolder);
 
 			Output = output;
 		}
@@ -54,7 +60,7 @@ namespace Test.StaticBlog.GivenValidActionCreate
 			sut.Filename = "test";
 			sut.Execute();
 
-			var outFile = new FileInfo(Path.Combine(sut.ThisDirectory, sut.OutputPath, "posts", sut.Filename + ".md"));
+			var outFile = FileSystem.FileInfo.New(FileSystem.Path.Combine(sut.ThisDirectory, sut.OutputPath, "posts", sut.Filename + ".md"));
 			Output.WriteLine($"File should be written to: {outFile.FullName}");
 			Assert.True(outFile.Exists);
 
@@ -67,7 +73,7 @@ namespace Test.StaticBlog.GivenValidActionCreate
 			sut.Filename = "testFrontMatter";
 			sut.Execute();
 
-			var outFile = File.OpenText(Path.Combine(sut.ThisDirectory, sut.OutputPath, "posts", sut.Filename + ".md"));
+			var outFile = FileSystem.File.OpenText(Path.Combine(sut.ThisDirectory, sut.OutputPath, "posts", sut.Filename + ".md"));
 
 			var contents = outFile.ReadToEnd();
 			Assert.StartsWith("---", contents);
