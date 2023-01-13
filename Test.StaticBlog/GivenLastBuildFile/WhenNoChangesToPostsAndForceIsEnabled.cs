@@ -7,6 +7,27 @@ namespace Test.StaticBlog.GivenLastBuildFile
 	public class WhenNoChangesToPostsAndForceIsEnabled : BaseFixture
 	{
 
+		public override void Initialize()
+		{
+
+			base.Initialize();
+
+			var postsFolder = FileSystem.Path.Combine(WorkingDirectory.FullName, "posts");
+
+			var oldFile = new System.IO.Abstractions.TestingHelpers.MockFileData(
+				"""
+				---
+				draft: false
+				---
+				# Old file content
+				""");
+			oldFile.LastWriteTime = DateTime.UtcNow;
+			base.FileSystem.AddFile(
+				FileSystem.Path.Combine(postsFolder, "oldPost.md"), oldFile
+			);
+
+		}
+
 		[Fact]
 		public void ShouldRebuildPosts()
 		{
@@ -21,7 +42,8 @@ namespace Test.StaticBlog.GivenLastBuildFile
 			_sut.BuildPosts();
 
 			// assert
-			Assert.NotEmpty(base.OutputPostsFolder.GetFiles());
+			var outputFolder = FileSystem.DirectoryInfo.New(FileSystem.Path.Combine(OutputFolder.FullName, "posts"));
+			Assert.NotEmpty(outputFolder.GetFiles());
 
 		}
 
@@ -40,7 +62,8 @@ namespace Test.StaticBlog.GivenLastBuildFile
 			_sut.BuildIndex();
 
 			// assert
-			Assert.NotEmpty(base.OutputFolder.GetFiles("index.html"));
+			var outputFolder = FileSystem.DirectoryInfo.New(OutputFolder.FullName);
+			Assert.NotEmpty(outputFolder.GetFiles("index.html"));
 
 		}
 

@@ -2,7 +2,7 @@
 
 public class IndexFixture : BaseFixture
 {
-	internal readonly FileInfo _IndexFile;
+	internal readonly IFileInfo _IndexFile;
 
 	public IndexFixture()
 	{

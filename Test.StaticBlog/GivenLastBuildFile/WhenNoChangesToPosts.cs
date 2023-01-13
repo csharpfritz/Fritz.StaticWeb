@@ -4,8 +4,24 @@ using Xunit;
 
 namespace Test.StaticBlog.GivenLastBuildFile
 {
+
 	public class WhenNoChangesToPosts : BaseFixture
 	{
+
+		public override void Initialize()
+		{
+
+			base.Initialize();
+
+			var postsFolder = FileSystem.Path.Combine(WorkingDirectory.FullName, "posts");
+
+			var oldFile = new System.IO.Abstractions.TestingHelpers.MockFileData("# Old file content");
+			oldFile.LastWriteTime = DateTime.UtcNow.AddMinutes(-5);
+			base.FileSystem.AddFile(
+				FileSystem.Path.Combine(postsFolder, "oldPost.md"), oldFile
+			);
+
+		}
 
 		[Fact]
 		public void ShouldNotRebuildPosts()
@@ -20,7 +36,8 @@ namespace Test.StaticBlog.GivenLastBuildFile
 			_sut.BuildPosts();
 
 			// assert
-			Assert.Empty(base.OutputPostsFolder.GetFiles());
+			var outputFolder = FileSystem.DirectoryInfo.New(FileSystem.Path.Combine(OutputFolder.FullName, "posts"));
+			Assert.Empty(outputFolder.GetFiles());
 
 		}
 
@@ -45,12 +62,11 @@ namespace Test.StaticBlog.GivenLastBuildFile
 		public override void Dispose()
 		{
 
-			Directory.Delete(_sut.OutputPath, true);
+			//Directory.Delete(_sut.OutputPath, true);
 
 			base.Dispose();
 		}
 
 	}
-
 
 }

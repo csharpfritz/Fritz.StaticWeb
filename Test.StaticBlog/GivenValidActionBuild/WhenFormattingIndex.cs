@@ -19,6 +19,7 @@ namespace Test.StaticBlog.GivenValidActionBuild
 			Output = output;
 
 			this.Fixture = fixture;
+			fixture._sut.Logger = new XUnitLogger(output);
 
 		}
 
@@ -31,7 +32,7 @@ namespace Test.StaticBlog.GivenValidActionBuild
 
 			if (Fixture._IndexFile == null) return;
 
-			var contents = File.OpenText(Fixture._IndexFile.FullName).ReadToEnd();
+			var contents = Fixture.FileSystem.File.OpenText(Fixture._IndexFile.FullName).ReadToEnd();
 
 			Assert.Contains("<title>The Unit Test Website</title>", contents);
 
@@ -43,7 +44,7 @@ namespace Test.StaticBlog.GivenValidActionBuild
 
 			if (Fixture._IndexFile == null) return;
 
-			var contents = File.OpenText(Fixture._IndexFile.FullName).ReadToEnd();
+			var contents = Fixture.FileSystem.File.OpenText(Fixture._IndexFile.FullName).ReadToEnd();
 
 			Assert.Contains("<!-- Test Layout -->", contents);
 
@@ -56,7 +57,7 @@ namespace Test.StaticBlog.GivenValidActionBuild
 			// Index wasnt created, don't process
 			if (Fixture._IndexFile == null) return;
 
-			var contents = File.OpenText(Fixture._IndexFile.FullName).ReadToEnd();
+			var contents = Fixture.FileSystem.File.OpenText(Fixture._IndexFile.FullName).ReadToEnd();
 
 			// Check for the post title
 			Assert.Contains("First post!", contents);
@@ -76,7 +77,7 @@ namespace Test.StaticBlog.GivenValidActionBuild
 			// Index wasnt created, don't process
 			if (Fixture._IndexFile == null) return;
 
-			var contents = File.OpenText(Fixture._IndexFile.FullName).ReadToEnd();
+			var contents = Fixture.FileSystem.File.OpenText(Fixture._IndexFile.FullName).ReadToEnd();
 
 			// Check for included material 
 			Assert.Contains("This is an include", contents);
@@ -90,7 +91,7 @@ namespace Test.StaticBlog.GivenValidActionBuild
 			// Index wasnt created, don't process
 			if (Fixture._IndexFile == null) return;
 
-			var contents = File.OpenText(Fixture._IndexFile.FullName).ReadToEnd();
+			var contents = Fixture.FileSystem.File.OpenText(Fixture._IndexFile.FullName).ReadToEnd();
 
 			// Check for included material   
 			Assert.Contains("This is the current year: " + DateTime.UtcNow.Year, contents);

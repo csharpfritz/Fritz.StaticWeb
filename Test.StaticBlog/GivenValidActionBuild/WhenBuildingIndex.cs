@@ -5,10 +5,12 @@ public class WhenBuildingIndex : BaseFixture
 {
 
 	public WhenBuildingIndex(ITestOutputHelper output) : base()
-	{ 
+	{
+
+		_sut.Logger = new XUnitLogger(output);
 
 		// Reset by deleting the index file
-		File.Delete(Path.Combine(OutputFolder.FullName, "index.html"));
+		//File.Delete(Path.Combine(OutputFolder.FullName, "index.html"));
 
 		_sut._Posts.Add(new PostData {
 			Filename = "first_post.html",
@@ -26,11 +28,11 @@ public class WhenBuildingIndex : BaseFixture
 
 		Output = output;
 		Output.WriteLine(OutputFolder.FullName);
-		Output.WriteLine($"Index file location: {Path.Combine(OutputFolder?.FullName, "index.html")}");
+		Output.WriteLine($"Index file location: {FileSystem.Path.Combine(OutputFolder?.FullName, "index.html")}");
 		_IndexFile = OutputFolder.GetFiles("index.html").FirstOrDefault();
 	}
 
-  private FileInfo _IndexFile;
+  private IFileInfo _IndexFile;
 
   public ITestOutputHelper Output { get; }
 
@@ -46,7 +48,7 @@ public class WhenBuildingIndex : BaseFixture
 	public void ShouldApplyMacros()
 	{
 
-		var html = File.ReadAllText(_IndexFile.FullName);
+		var html = FileSystem.File.ReadAllText(_IndexFile.FullName);
 		Assert.DoesNotContain("{{ CurrentYear }}", html);
 		Assert.Contains($"<span>Year: {DateTime.Now.Year}</span>", html);
 

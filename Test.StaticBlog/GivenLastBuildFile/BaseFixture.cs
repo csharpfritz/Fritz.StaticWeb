@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.IO.Abstractions.TestingHelpers;
 using System.Text.Json;
 using Fritz.StaticBlog;
 using Fritz.StaticBlog.Data;
@@ -12,32 +13,56 @@ namespace Test.StaticBlog.GivenLastBuildFile
 		protected ActionBuild _sut { get; private set; }
 		protected DateTime _LastBuildDate;
 
+		protected MockFileSystem FileSystem { get; private set; }
 		public override void Initialize()
 		{
-				
+		
 			base.Initialize();
 
-			_sut = new ActionBuild
+			_LastBuildDate = DateTime.UtcNow.AddSeconds(-5);
+			string lastBuildFilename = $".lastbuild.{Guid.NewGuid()}.json";
+			
+			FileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
+			{
+				{ Path.Combine(WorkingDirectory.FullName, lastBuildFilename),
+					$$"""
+						{
+							"Timestamp":  "{{_LastBuildDate.ToString("o")}}"
+						}
+					""" 
+				}
+			});
+			FileSystem.AddFile(
+				FileSystem.Path.Combine(WorkingDirectory.FullName, "themes", "kliptok", "layouts", "posts.html"), 
+				PostLayout);
+			FileSystem.AddFile(
+				FileSystem.Path.Combine(WorkingDirectory.FullName, "themes", "kliptok", "layouts", "index.html"),
+				IndexLayout);
+			FileSystem.AddFile(
+				FileSystem.Path.Combine(WorkingDirectory.FullName, "config.json"),
+				new MockFileData("""{}"""));
+			FileSystem.Directory.CreateDirectory(OutputFolder.FullName);
+			FileSystem.Directory.CreateDirectory(FileSystem.Path.Combine(WorkingDirectory.FullName, "posts"));
+			FileSystem.AddFile(FileSystem.Path.Combine(WorkingDirectory.FullName, "themes", "kliptok", "includes", "sample.html"), new MockFileData("This is an include"));
+			FileSystem.AddFile(FileSystem.Path.Combine(WorkingDirectory.FullName, "themes", "kliptok", "includes", "sampleWithMacro.html"), new MockFileData("This is the current year: {{ CurrentYear }}"));
+
+
+			_sut = new ActionBuild(FileSystem)
 			{
 				Force = false,
 				OutputPath = OutputFolder.FullName,
 				ThisDirectory = WorkingDirectory.FullName,
-				LastBuildFilename = $".lastbuild.{Guid.NewGuid()}.json",
+				LastBuildFilename = lastBuildFilename,
 				Config = new Config
 				{
 					Theme = "kliptok",
-					Title = "The Unit Test Website"
+					Title = "The Unit Test Website",
+					Link = "https://test.csharpfritz.com"
 				}
 			};
 
-			_LastBuildDate = DateTime.UtcNow.AddSeconds(-5);
-			var lastBuildFile = File.OpenWrite(Path.Combine(WorkingDirectory.FullName, _sut.LastBuildFilename));
-			JsonSerializer.SerializeAsync<LastBuild>(lastBuildFile, new LastBuild { Timestamp = _LastBuildDate }).GetAwaiter().GetResult();
-			lastBuildFile.Flush();
-			lastBuildFile.Close();
-
 		}
- 
+
 		public virtual void Dispose()
 		{
 

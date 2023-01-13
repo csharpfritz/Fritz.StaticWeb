@@ -6,11 +6,11 @@ namespace Test.StaticBlog.GivenValidActionBuild;
 public class WhenBuildingRss : BaseFixture
 {
 
-	public WhenBuildingRss()
+	public WhenBuildingRss(ITestOutputHelper helper)
 	{
 		_sut.Config.Link = "https://example.com";
 		_sut.Config.Description = "This is a test website";
-		// _sut.Config.
+		_sut.Logger = new XUnitLogger(helper);
 	}
 
 	[Fact]
@@ -29,7 +29,7 @@ public class WhenBuildingRss : BaseFixture
 		OutputRssFile.Delete();
 		const string testContent = "REMOVE THIS CONTENT";
 
-		using (var rssFile = File.OpenWrite(OutputRssFile.FullName))
+		using (var rssFile = FileSystem.File.OpenWrite(OutputRssFile.FullName))
 		{
 			rssFile.Write(Encoding.UTF8.GetBytes(testContent));
 			rssFile.Flush();
@@ -39,7 +39,7 @@ public class WhenBuildingRss : BaseFixture
 		_sut.BuildRss();
 
 		// assert
-		var contents = File.ReadAllText(OutputRssFile.FullName);
+		var contents = FileSystem.File.ReadAllText(OutputRssFile.FullName);
 		Assert.DoesNotContain(testContent, contents);
 
 
@@ -68,14 +68,15 @@ public class WhenBuildingRss : BaseFixture
 
 		// arrange
 		// Clear the folder to ensure this file is written
-		if (OutputRssFile.Exists) OutputRssFile.Delete();
 
 		// act
 		_sut.BuildRss();
 
 		// assert
+		_sut.Logger.Log($"Searching for RSS file at: {OutputRssFile.FullName}");
+		OutputRssFile.Refresh();
 		Assert.True(OutputRssFile.Exists);
-		var contents = File.ReadAllText(OutputRssFile.FullName);
+		var contents = FileSystem.File.ReadAllText(OutputRssFile.FullName);
 		Assert.Contains("<rss", contents);
 		Assert.Contains("<channel", contents);
 		Assert.Contains("<title>", contents);
@@ -95,7 +96,7 @@ public class WhenBuildingRss : BaseFixture
 
 		// arrange
 		// Clear the folder to ensure this file is written
-		if (OutputRssFile.Exists) OutputRssFile.Delete();
+		//if (OutputRssFile.Exists) OutputRssFile.Delete();
 		_sut._Posts.Add(new PostData
 		{
 			Filename = "first_post.html",
@@ -114,7 +115,8 @@ public class WhenBuildingRss : BaseFixture
 		_sut.BuildRss();
 
 		// assert
-		var contents = File.ReadAllText(OutputRssFile.FullName);
+		OutputRssFile.Refresh();
+		var contents = FileSystem.File.ReadAllText(OutputRssFile.FullName);
 		Assert.Contains("<item>", contents);
 
 	}
@@ -144,7 +146,7 @@ public class WhenBuildingRss : BaseFixture
 		_sut.BuildRss();
 
 		// assert
-		var contents = File.ReadAllText(OutputRssFile.FullName);
+		var contents = FileSystem.File.ReadAllText(OutputRssFile.FullName);
 		Assert.DoesNotContain("<h2", contents);
 
 	}
@@ -176,7 +178,7 @@ public class WhenBuildingRss : BaseFixture
 		_sut.BuildIndex();
 
 		var indexFile = OutputFolder.GetFiles("index.html").FirstOrDefault();
-		Assert.Contains($"<link rel=\"alternate\" type=\"application/rss+xml\" title=\"{_sut.Config.Title}\" href=\"rss.xml\" />", File.ReadAllText(indexFile.FullName));
+		Assert.Contains($"<link rel=\"alternate\" type=\"application/rss+xml\" title=\"{_sut.Config.Title}\" href=\"rss.xml\" />", FileSystem.File.ReadAllText(indexFile.FullName));
 
 	}
 
