@@ -77,9 +77,22 @@ namespace Test.StaticBlog.GivenLastBuildFile
 
 		}
 
-		[Fact(Skip = "Test not finished")]
+		[Fact()]
 		public void ShouldRebuildRss()
 		{
+
+			// arrange
+			TargetFolderName = Guid.NewGuid().ToString();
+			Initialize();
+
+			// act
+			_sut.Validate();
+			_sut.BuildPosts();
+			_sut.BuildIndex();
+			_sut.BuildRss();
+
+			// assert
+			Assert.NotEmpty(OutputFolder.GetFiles("rss.xml"));
 
 		}
 

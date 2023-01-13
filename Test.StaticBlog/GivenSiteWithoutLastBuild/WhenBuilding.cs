@@ -1,4 +1,5 @@
 using Fritz.StaticBlog;
+using System.IO.Abstractions.TestingHelpers;
 
 namespace Test.StaticBlog.GivenSiteWithoutLastBuild;
 
@@ -6,12 +7,34 @@ public class WhenBuilding : TestSiteBaseFixture, IDisposable
 {
 	private readonly ActionBuild _sut;
 
+	protected MockFileSystem FileSystem { get; private set; }
+
 	public WhenBuilding()
 	{
 			
 		base.Initialize();
 
-		_sut = new ActionBuild
+		FileSystem = new MockFileSystem();
+		FileSystem.AddFile(
+			FileSystem.Path.Combine(WorkingDirectory.FullName, "themes", "kliptok", "layouts", "posts.html"),
+			PostLayout);
+		FileSystem.AddFile(
+			FileSystem.Path.Combine(WorkingDirectory.FullName, "themes", "kliptok", "layouts", "index.html"),
+			IndexLayout);
+
+		var postsFolder = FileSystem.Path.Combine(WorkingDirectory.FullName, "posts");
+		var oldFile = new MockFileData("""
+				---
+				draft: false
+				---
+				# Old file content
+				""");
+		oldFile.LastWriteTime = DateTime.UtcNow.AddMinutes(-5);
+		FileSystem.AddFile(
+			FileSystem.Path.Combine(postsFolder, "oldPost.md"), oldFile
+		);
+
+		_sut = new ActionBuild(FileSystem)
 		{
 			Force = false,
 			OutputPath = TargetFolderName,
@@ -29,7 +52,7 @@ public class WhenBuilding : TestSiteBaseFixture, IDisposable
 	public void Dispose()
 	{
 		
-		File.Delete(Path.Combine(WorkingDirectory.FullName, _sut.LastBuildFilename));
+		FileSystem.File.Delete(Path.Combine(WorkingDirectory.FullName, _sut.LastBuildFilename));
 
 	}
 
@@ -38,8 +61,8 @@ public class WhenBuilding : TestSiteBaseFixture, IDisposable
 
 		_sut.Execute();
 
-		var lastBuildFile = Path.Combine(WorkingDirectory.FullName, _sut.LastBuildFilename);
-		Assert.True(System.IO.File.Exists(lastBuildFile));
+		var lastBuildFile = FileSystem.Path.Combine(WorkingDirectory.FullName, _sut.LastBuildFilename);
+		Assert.True(FileSystem.File.Exists(lastBuildFile));
 
 	}
 

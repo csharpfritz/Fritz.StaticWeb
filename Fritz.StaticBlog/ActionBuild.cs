@@ -366,10 +366,10 @@ if (!outValue) Logger.Log("pages folder is missing");
 
 		var rssFooter = "\n</channel>\n</rss>";
 
-		var rssFilename = Path.Combine(WorkingDirectory, OutputPath, "rss.xml");
-		File.Delete(rssFilename);
+		var rssFilename = _FileSystem.Path.Combine(WorkingDirectory, OutputPath, "rss.xml");
+		_FileSystem.File.Delete(rssFilename);
 
-		using var rssFile = File.OpenWrite(rssFilename);
+		using var rssFile = _FileSystem.File.OpenWrite(rssFilename);
 		rssFile.Write(Encoding.UTF8.GetBytes(rssHeader));
 		rssFile.Write(Encoding.UTF8.GetBytes(rssHeader2));
 
@@ -455,11 +455,11 @@ if (!outValue) Logger.Log("pages folder is missing");
 	internal void DeployWwwRoot()
 	{
 
-		var themeFolder = new DirectoryInfo(Path.Combine(WorkingDirectory, "themes", Config.Theme, "wwwroot"));
-		if (!Directory.Exists(Path.Combine(WorkingDirectory, "wwwroot")) && !themeFolder.Exists) return;
+		var themeFolder = _FileSystem.DirectoryInfo.New(_FileSystem.Path.Combine(WorkingDirectory, "themes", Config.Theme, "wwwroot"));
+		if (!_FileSystem.Directory.Exists(_FileSystem.Path.Combine(WorkingDirectory, "wwwroot")) && !themeFolder.Exists) return;
 
-		var wwwFolder = new DirectoryInfo(Path.Combine(WorkingDirectory, "wwwroot"));
-		var targetFolder = new DirectoryInfo(Path.Combine(WorkingDirectory, OutputPath));
+		var wwwFolder = _FileSystem.DirectoryInfo.New(_FileSystem.Path.Combine(WorkingDirectory, "wwwroot"));
+		var targetFolder = _FileSystem.DirectoryInfo.New(_FileSystem.Path.Combine(WorkingDirectory, OutputPath));
 
 		if (themeFolder.Exists)
 		{
@@ -471,7 +471,7 @@ if (!outValue) Logger.Log("pages folder is missing");
 
 			foreach (var item in themeFolder.GetFiles())
 			{
-				File.Copy(item.FullName, Path.Combine(targetFolder.FullName, item.Name), true);
+				_FileSystem.File.Copy(item.FullName, _FileSystem.Path.Combine(targetFolder.FullName, item.Name), true);
 			}
 		}
 
@@ -485,7 +485,7 @@ if (!outValue) Logger.Log("pages folder is missing");
 
 			foreach (var item in wwwFolder.GetFiles())
 			{
-				File.Copy(item.FullName, Path.Combine(targetFolder.FullName, item.Name), true);
+				_FileSystem.File.Copy(item.FullName, _FileSystem.Path.Combine(targetFolder.FullName, item.Name), true);
 			}
 
 		}
@@ -497,15 +497,15 @@ if (!outValue) Logger.Log("pages folder is missing");
 	/// </summary>
 	/// <param name="target"></param>
 	/// <param name="source"></param>
-	private void CopyFolder(DirectoryInfo target, DirectoryInfo source)
+	private void CopyFolder(IDirectoryInfo target, IDirectoryInfo source)
 	{
 
-		if (!Directory.Exists(Path.Combine(target.FullName, source.Name)))
+		if (!_FileSystem.Directory.Exists(_FileSystem.Path.Combine(target.FullName, source.Name)))
 		{
-			Directory.CreateDirectory(Path.Combine(target.FullName, source.Name));
+			_FileSystem.Directory.CreateDirectory(_FileSystem.Path.Combine(target.FullName, source.Name));
 		}
 
-		var targetFolder = new DirectoryInfo(Path.Combine(target.FullName, source.Name));
+		var targetFolder = _FileSystem.DirectoryInfo.New(_FileSystem.Path.Combine(target.FullName, source.Name));
 		foreach (var item in source.GetDirectories())
 		{
 			CopyFolder(targetFolder, item);
@@ -513,7 +513,7 @@ if (!outValue) Logger.Log("pages folder is missing");
 
 		foreach (var item in source.GetFiles())
 		{
-			File.Copy(item.FullName, Path.Combine(targetFolder.FullName, item.Name), true);
+			_FileSystem.File.Copy(item.FullName, _FileSystem.Path.Combine(targetFolder.FullName, item.Name), true);
 		}
 
 	}
@@ -562,7 +562,7 @@ if (!outValue) Logger.Log("pages folder is missing");
 	{
 		_LastBuild.Timestamp = DateTime.UtcNow;
 		var outText = JsonSerializer.Serialize(_LastBuild);
-		File.WriteAllText(Path.Combine(WorkingDirectory, LastBuildFilename), outText);
+		_FileSystem.File.WriteAllText(_FileSystem.Path.Combine(WorkingDirectory, LastBuildFilename), outText);
 	}
 
 }

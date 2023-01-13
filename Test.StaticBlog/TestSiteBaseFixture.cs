@@ -1,4 +1,5 @@
 using System.IO;
+using System.IO.Abstractions.TestingHelpers;
 using System.Reflection;
 using System.Threading;
 using Fritz.StaticBlog;
@@ -15,6 +16,58 @@ namespace Test.StaticBlog
 
 		protected DirectoryInfo WorkingDirectory { get; private set;}
 		protected string TargetFolderName { get; set; }
+
+		public MockFileData PostLayout { 
+			get
+			{
+				return new MockFileData(
+				"""
+				<html>
+					<head>
+						<title>{{ Title }}</title>
+					</head>
+					<body>
+
+						<h1>{{ Title }}</h1>
+						<h3>Author: {{ Author }}</h3>
+						<h5>Published: {{ PublishDate }}</h5>
+
+						{{ Body }}
+
+						<span>Year: {{ CurrentYear }}</span>
+
+					</body>
+				</html>
+				""");
+			}
+		}
+
+		public MockFileData IndexLayout
+		{
+			get
+			{
+				return new MockFileData(
+				"""
+				<html>
+					<head>
+						<title>{{ Title }}</title>
+						<!-- Test Layout -->
+					</head>
+					<body>
+						{{ Body }}
+
+						<span>Year: {{ CurrentYear }}</span>
+						<a href="{{ ArchiveURL }}">All posts</a>
+
+						<footer>{{ Include:sample }}</footer>
+
+						{{ Include:sampleWithMacro }}
+
+					</body>
+				</html>
+				""");
+			}
+		}
 
 		public TestSiteBaseFixture()
 		{

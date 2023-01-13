@@ -1,48 +1,46 @@
 using System.IO;
+using System.IO.Abstractions.TestingHelpers;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Test.StaticBlog.GivenWwwrootContents
 {
 
-    public class WhenDeployingWwwroot : BaseFixture
-    {
+	public class WhenDeployingWwwroot : BaseFixture
+	{
 
-        public WhenDeployingWwwroot(ITestOutputHelper output)
-        {
-            Output = output;
-        }
+		public WhenDeployingWwwroot(ITestOutputHelper output)
+		{
+			Output = output;
+		}
 
-        public ITestOutputHelper Output { get; }
+		public ITestOutputHelper Output { get; }
 
-        [Fact]
-        public void ShouldDeployContentToOutputFolderRoot()
-        {
+		[Fact]
+		public void ShouldDeployContentToOutputFolderRoot()
+		{
 
-					try {
-						Directory.Delete(Path.Join(OutputFolder.FullName, "css"), true);
-					} catch {}
+			var wwwFolder = FileSystem.Path.Combine(WorkingDirectory.FullName, "wwwroot", "css");
+			FileSystem.AddFile(FileSystem.Path.Combine(wwwFolder, "site.css"), new MockFileData("body { margin: 2px; }"));
 
-					_sut.DeployWwwRoot();
+			_sut.DeployWwwRoot();
 
-					Assert.True(File.Exists(Path.Join(OutputFolder.FullName, "css", "site.css")));
+			Assert.True(FileSystem.File.Exists(FileSystem.Path.Join(OutputFolder.FullName, "css", "site.css")));
 
-        }
+		}
 
-				[Fact]
-				public void ShouldDeployThemeWwwrootContentToOutputFolderRoot() {
+		[Fact]
+		public void ShouldDeployThemeWwwrootContentToOutputFolderRoot()
+		{
 
-					try {
-						File.Delete(Path.Join(OutputFolder.FullName, "theme.css"));
-					}
-					catch {}
+			FileSystem.AddFile(FileSystem.Path.Combine(WorkingDirectory.FullName, "themes", "kliptok", "wwwroot", "theme.css"), new MockFileData("header { background-color: purple }"));
 
-					_sut.DeployWwwRoot();
+			_sut.DeployWwwRoot();
 
-					Assert.True(File.Exists(Path.Join(OutputFolder.FullName, "theme.css")));
+			Assert.True(FileSystem.File.Exists(FileSystem.Path.Join(OutputFolder.FullName, "theme.css")));
 
-				}
+		}
 
-    }
+	}
 
 }
